@@ -3,27 +3,17 @@ title: "proposed workflow"
 output: html_document
 date: "2024-11-03"
 ---
+Literature Review
+  The Pacific Northwest is an area with a diverse range of ecosystems. The ecosystems in this region are likely to experience dramatic changes due to the effects of climate change, given that a large portion of Oregon is highly susceptible to forest fires (cite halofsky).  Changing climate and extreme weather events are likely to change elevation preference in pollinators as well as impact bloom time in plants that they visit… (cite gov website)… Pollinators and their diversity levels have been on the decline in the past decades especially with the increasing climate problems and more urbanization. Since pollinators are responsible for the majority of fruit and seed production, it is vital that bee diversity and abundance flourishes (Kearns). Oregon is home to approximately 500 different species of bees, not to mention the other types of pollinators such as ants and flies (oregon.gov). Within the state, there are nine ecoregions and numerous mountain ranges, such as the Cascade and Coast regions, which both play important roles in the type of bee present in each area of Oregon. We want to study bee diversity in different elevations in Oregon while taking into consideration the ecoregion and latitude of the area. 
+  Current research has examined the effects of factors such as climate, geography, and ecology on species richness in bee populations. Research by Orr, et al. has found that the most prevalent drivers of species richness in bees were climate and non-forest plant productivity, with areas of a temperate climate and high plant species richness promoting higher diversity of bees (Orr). Pollinator diversity plays an important role in maintaining natural plant communities, as pollinators provide a unique and essential ecosystem service that can not be effectively replicated through just increasing pollinator abundance (katumo).
+  The purpose of this study is to determine how bee diversity is affected by latitude and elevation across different Oregon ecoregions. Three datasets, the Oregon Bee Atlas, Oregon Ecoregions, and a digital elevation model of Oregon, will be used to perform the research. The Oregon Ecoregions and the digital elevation model will be placed on top of each other using an overlay feature. From there, the state will be split up into chunks depending on the latitude. Within each chunk of latitude, the diversity of bees, using the Oregon Bee Atlas, in that section will be studied. Then, the diversity information will be used to compare areas of different ecoregions and elevations. The end goal is to determine which ecoregion in Oregon has the most bee diversity and abundance. Our question is, within each ecoregion in Oregon, does species diversity in bees follow an elevational gradient? We predict that Southeast Oregon, the Northern and Basin Range ecoregion, will have the highest diversity of bees due to the dry climate and varying elevation levels which can accommodate different species. 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
-## R Markdown
+Dataset Identification
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Proposed Workflow
 
-```{r cars}
-summary(cars)
-```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Partner contributions 
