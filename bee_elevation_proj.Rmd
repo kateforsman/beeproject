@@ -1,0 +1,64 @@
+---
+title: "Untitled"
+output: html_document
+date: "2024-11-13"
+---
+
+```{r setup, include=FALSE}
+library(sf)
+library(terra) 
+library(ggplot2)
+library(dplyr)
+library(ggspatial)
+
+```
+
+
+
+```{r}
+#gdb_file <- "C:/Users/Admin/Downloads/OR_DEM_10M.gdb/OR_DEM_10M.gdb/a00000029.gdbtable"
+#layers <- st_layers(gdb_file)
+#print(layers)
+
+#gdb_data <- st_read(dsn = gdb_file, layer = "fras_blk_DEM_10meter_Oregon")
+
+
+#head(gdb_data)
+
+```
+
+
+```{r}
+#gdb_data <- st_read(gdb_file, layer = "layer_name", quiet = TRUE)
+
+
+#describe("C:/Users/Admin/Downloads/OR_DEM_10M_files.gdb")
+dem_rast <- rast("C:/Users/Admin/Downloads/OR_DEM_10M_files.gdb")
+dem_rast
+
+# commented code below is for cropping the extent of the data, will show a smaller portion of the state rather than a reduced res version
+
+#extent <- ext(dem_rast) * 0.01  # Crop to 1% of the original size
+#dem_rast_subset <- crop(dem_rast, extent)
+
+# Convert the subset to a data frame
+#dem_rast_df <- as.data.frame(dem_rast_subset, xy = TRUE)
+#dem_rast_df <- as.data.frame(dem_rast, xy = TRUE)
+#dem_rast_df
+
+dem_rast_downsampled <- aggregate(dem_rast, fact = 100, fun = mean)
+dem_rast_df <- as.data.frame(dem_rast_downsampled, xy = TRUE)
+head(dem_rast_df)
+```
+
+```{r}
+str(dem_rast_df)
+
+ggplot() +
+    geom_raster(data = dem_rast_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
+    scale_fill_gradientn(colours = terrain.colors(7)) #this is probably the more informative color scale
+    #scale_fill_viridis_c
+    # this one above looks cooler, but is a bit harder to see the elevation difference in
+
+```
+
