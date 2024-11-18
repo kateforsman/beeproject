@@ -5,17 +5,22 @@ date: "2024-11-13"
 ---
 
 ```{r setup, include=FALSE}
+# packages that will be used
 library(sf)
 library(terra) 
 library(ggplot2)
 library(dplyr)
 library(ggspatial)
+library(tmap)
+library(RColorBrewer)
 
 ```
 
 
 
-```{r}
+
+
+```{r - Random stuff that may be useful later}
 #gdb_file <- "C:/Users/Admin/Downloads/OR_DEM_10M.gdb/OR_DEM_10M.gdb/a00000029.gdbtable"
 #layers <- st_layers(gdb_file)
 #print(layers)
@@ -24,17 +29,6 @@ library(ggspatial)
 
 
 #head(gdb_data)
-
-```
-
-
-```{r}
-#gdb_data <- st_read(gdb_file, layer = "layer_name", quiet = TRUE)
-
-
-#describe("C:/Users/Admin/Downloads/OR_DEM_10M_files.gdb")
-dem_rast <- rast("C:/Users/Admin/Downloads/OR_DEM_10M_files.gdb")
-dem_rast
 
 # commented code below is for cropping the extent of the data, will show a smaller portion of the state rather than a reduced res version
 
@@ -46,19 +40,99 @@ dem_rast
 #dem_rast_df <- as.data.frame(dem_rast, xy = TRUE)
 #dem_rast_df
 
+#gdb_path <- "C:/Users/Admin/Downloads/OR_DEM_10M_files.gdb"
+#raster <- rast("C:/Users/Admin/Downloads/OR_DEM_10M_files.gdb")
+#raster
+#layers <- terra::sources(gdb_path)
+```
+
+
+
+
+
+```{r - Code for reading in a reducing resolution of DEM data}
+
+describe("C:/Users/Admin/Downloads/OR_DEM_10M_files.gdb")
+dem_rast <- rast("C:/Users/Admin/Downloads/OR_DEM_10M_files.gdb")
+dem_rast
+
 dem_rast_downsampled <- aggregate(dem_rast, fact = 100, fun = mean)
 dem_rast_df <- as.data.frame(dem_rast_downsampled, xy = TRUE)
 head(dem_rast_df)
+summary(values(dem_rast_downsampled))
+
+
 ```
 
-```{r}
+
+
+
+
+```{r - Elevation map of oregon visual}
+
 str(dem_rast_df)
 
-ggplot() +
+elevation_map <- ggplot() +
     geom_raster(data = dem_rast_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
     scale_fill_gradientn(colours = terrain.colors(7)) #this is probably the more informative color scale
     #scale_fill_viridis_c
     # this one above looks cooler, but is a bit harder to see the elevation difference in
 
+elevation_map
 ```
+
+
+
+
+
+```{r Reading in ecoregion data}
+
+ecoregions_vec <- st_read("C:/Users/Admin/Downloads/ds-environ-JS/5-lab-OR-fires/5-OR-fires/OR-ecoregions/Ecoregions_OregonConservationStrategy.shp")
+st_crs(dem_rast_downsampled)
+st_crs(ecoregions_vec)
+ecoregions_vec <- st_transform(ecoregions_vec, crs(dem_rast_downsampled), res=res(dem_rast_downsampled))
+head(ecoregions_vec)
+
+# trying to crop the extent of the raster data so that it fits completely into the ecoregions data, but 
+## neither of the below seem to work
+
+#ecoregions_vec <- st_crop(ecoregions_vec, st_bbox(dem_rast_downsampled))
+#dem_rast_downsampled <- crop(dem_rast_downsampled, st_bbox(ecoregions_vec))
+
+# commented code below is something I found online for matching the extents of both data sets, results are weird
+
+#aligned_raster <- resample(dem_rast_downsampled, rast(ecoregions_vec), method = "bilinear")
+#align_dem_rast_df <- as.data.frame(aligned_raster, xy = TRUE)
+#align_dem_rast_df
+
+#elevation_all_ecoregions_plot <- ggplot() +
+  #geom_raster(data = align_dem_rast_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
+  #scale_fill_gradientn(colours = terrain.colors(7)) +
+  #geom_sf(data = ecoregions_vec, color = "black", fill = NA) 
+
+#elevation_all_ecoregions_plot
+
+elevation_all_ecoregions_plot <- ggplot() +
+  geom_raster(data = dem_rast_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
+  scale_fill_gradientn(colours = terrain.colors(7)) +
+  geom_sf(data = ecoregions_vec, color = "black", fill = NA) 
+
+elevation_all_ecoregions_plot
+
+```
+
+```{r Splitting the ecoregions data into the separate ecoregions with elevation data cropped to their extent}
+
+names(ecoregions_vec)
+crs(dem_rast_downsampled, proj = TRUE)
+crs(ecoregions_vec, proj = TRUE)
+ext(dem_rast_downsampled)
+ext(ecoregions_vec)
+
+aligned_raster <- resample(dem_rast_downsampled, rast(ecoregions_vec), method = "bilinear")
+
+# Check the new extent
+ext(aligned_raster)
+```
+
 
