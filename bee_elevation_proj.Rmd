@@ -57,7 +57,7 @@ dem_rast <- rast("C:/Users/Admin/Downloads/OR_DEM_10M_files.gdb")
 dem_rast
 
 dem_rast_downsampled <- aggregate(dem_rast, fact = 100, fun = mean)
-dem_rast_df <- as.data.frame(dem_rast_downsampled, xy = TRUE)
+dem_rast_dsamp_df <- as.data.frame(dem_rast_downsampled, xy = TRUE)
 head(dem_rast_df)
 summary(values(dem_rast_downsampled))
 
@@ -69,16 +69,17 @@ summary(values(dem_rast_downsampled))
 ```{r Reading in ecoregion data and plot of elevation and ecoregions}
 
 ecoregions_vec <- st_read("C:/Users/Admin/Downloads/ds-environ-JS/5-lab-OR-fires/5-OR-fires/OR-ecoregions/Ecoregions_OregonConservationStrategy.shp")
-st_crs(dem_rast_downsampled)
-st_crs(ecoregions_vec)
+head(ecoregions_vec)
+#st_crs(dem_rast_downsampled)
+#st_crs(ecoregions_vec)
 ecoregions <- st_transform(ecoregions_vec, crs(dem_rast_downsampled), res=res(dem_rast_downsampled))
+#st_crs(ecoregions)
 head(ecoregions)
-
-elevation_crop <- crop(x = dem_rast_downsampled, y = ecoregions)
-elevation_crop_df <- as.data.frame(elevation_crop, xy= TRUE)
+#elevation_crop <- crop(x = dem_rast_downsampled, y = ecoregions)
+#elevation_crop_df <- as.data.frame(elevation_crop, xy= TRUE)
 
 elevation_all_ecoregions_plot <- ggplot() +
-  geom_raster(data = elevation_crop_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
+  geom_raster(data = dem_rast_dsamp_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
   scale_fill_gradientn(colours = terrain.colors(7)) +
   geom_sf(data = ecoregions, color = "black", fill = NA) 
 
@@ -96,8 +97,8 @@ elevation_all_ecoregions_plot
 # commented code below is something I found online for matching the extents of both data sets, results are weird
 
 # names(ecoregions_vec)
-# crs(dem_rast_downsampled, proj = TRUE)
-# crs(ecoregions_vec, proj = TRUE)
+crs(dem_rast_downsampled, proj = TRUE)
+crs(ecoregions_vec, proj = TRUE)
 # ext(dem_rast_downsampled)
 # ext(ecoregions_vec)
 # 
@@ -129,33 +130,23 @@ ecoregions_vec
 minmax(dem_rast_downsampled)
 st_crs(elevation_crop)
 st_crs(ecoregions)
-ecoregion_list <- split(ecoregions, ecoregions$Ecoregion)
 
-elevation_by_ecoregion <- list()
+```
 
-for(i in names(ecoregion_list)){
-  
-  ecoregion <- ecoregion_list[[i]]
-  
-  masked_rast <- mask(dem_rast_downsampled, ecoregion)
-  
-  cropped_rast <- crop(masked_rast, ecoregion)
-  
-  elevation_by_ecoregion[[i]] <- cropped_rast
-}
-print(elevation_by_ecoregion)
+```{r Elevation data for ecoregion}
 
-elevation_values <- list()
+east_cascades <- ecoregions %>% filter(Ecoregion == "East Cascades")
+print(east_cascades)
 
+Ecas <- extract(x = dem_rast_downsampled, y = east_cascades, raw = FALSE)
+print(Ecas)
 
-for (i in names(elevation_by_ecoregion)) {
+plot(st_geometry(ecoregions), col = "lightgrey", main = "East Cascades Ecoregion Highlighted")
+plot(st_geometry(east_cascades), col = "blue", add = TRUE)
 
-  elevation_raster <- elevation_by_ecoregion[[i]]
-  
-  elevation_values[[i]] <- data.frame(elevation = elevation_values[[i]])
-}
+ggplot() +
+  geom_histogram(data = Ecas, aes(x = OR_DEM_10M_files))
 
-head(elevation_values[["East Cascades"]])
 ```
 
 
