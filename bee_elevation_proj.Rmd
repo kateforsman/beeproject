@@ -61,37 +61,31 @@ dem_rast_df <- as.data.frame(dem_rast_downsampled, xy = TRUE)
 head(dem_rast_df)
 summary(values(dem_rast_downsampled))
 
-
 ```
 
 
 
 
-
-```{r - Elevation map of oregon visual}
-
-str(dem_rast_df)
-
-elevation_map <- ggplot() +
-    geom_raster(data = dem_rast_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
-    scale_fill_gradientn(colours = terrain.colors(7)) #this is probably the more informative color scale
-    #scale_fill_viridis_c
-    # this one above looks cooler, but is a bit harder to see the elevation difference in
-
-elevation_map
-```
-
-
-
-
-
-```{r Reading in ecoregion data}
+```{r Reading in ecoregion data and plot of elevation and ecoregions}
 
 ecoregions_vec <- st_read("C:/Users/Admin/Downloads/ds-environ-JS/5-lab-OR-fires/5-OR-fires/OR-ecoregions/Ecoregions_OregonConservationStrategy.shp")
 st_crs(dem_rast_downsampled)
 st_crs(ecoregions_vec)
-ecoregions_vec <- st_transform(ecoregions_vec, crs(dem_rast_downsampled), res=res(dem_rast_downsampled))
-head(ecoregions_vec)
+ecoregions <- st_transform(ecoregions_vec, crs(dem_rast_downsampled), res=res(dem_rast_downsampled))
+head(ecoregions)
+
+elevation_crop <- crop(x = dem_rast_downsampled, y = ecoregions)
+elevation_crop_df <- as.data.frame(elevation_crop, xy= TRUE)
+
+elevation_all_ecoregions_plot <- ggplot() +
+  geom_raster(data = elevation_crop_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
+  scale_fill_gradientn(colours = terrain.colors(7)) +
+  geom_sf(data = ecoregions, color = "black", fill = NA) 
+
+elevation_all_ecoregions_plot
+
+```
+```{r Stuff for matching extent - doesn't work correctly}
 
 # trying to crop the extent of the raster data so that it fits completely into the ecoregions data, but 
 ## neither of the below seem to work
@@ -101,7 +95,16 @@ head(ecoregions_vec)
 
 # commented code below is something I found online for matching the extents of both data sets, results are weird
 
-#aligned_raster <- resample(dem_rast_downsampled, rast(ecoregions_vec), method = "bilinear")
+# names(ecoregions_vec)
+# crs(dem_rast_downsampled, proj = TRUE)
+# crs(ecoregions_vec, proj = TRUE)
+# ext(dem_rast_downsampled)
+# ext(ecoregions_vec)
+# 
+# aligned_raster <- resample(dem_rast_downsampled, rast(ecoregions_vec), method = "bilinear") 
+# 
+# ext(aligned_raster)
+
 #align_dem_rast_df <- as.data.frame(aligned_raster, xy = TRUE)
 #align_dem_rast_df
 
@@ -112,27 +115,47 @@ head(ecoregions_vec)
 
 #elevation_all_ecoregions_plot
 
-elevation_all_ecoregions_plot <- ggplot() +
-  geom_raster(data = dem_rast_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
-  scale_fill_gradientn(colours = terrain.colors(7)) +
-  geom_sf(data = ecoregions_vec, color = "black", fill = NA) 
-
-elevation_all_ecoregions_plot
-
 ```
 
-```{r Splitting the ecoregions data into the separate ecoregions with elevation data cropped to their extent}
 
-names(ecoregions_vec)
-crs(dem_rast_downsampled, proj = TRUE)
-crs(ecoregions_vec, proj = TRUE)
-ext(dem_rast_downsampled)
-ext(ecoregions_vec)
+```{r Splitting the ecoregions data into the separate ecoregions with elevation data}
 
-aligned_raster <- resample(dem_rast_downsampled, rast(ecoregions_vec), method = "bilinear")
+# names(ecoregions_vec)
+# crs(dem_rast_downsampled, proj = TRUE)
+# crs(ecoregions_vec, proj = TRUE)
+# ext(dem_rast_downsampled)
+# ext
+ecoregions_vec
+minmax(dem_rast_downsampled)
+st_crs(elevation_crop)
+st_crs(ecoregions)
+ecoregion_list <- split(ecoregions, ecoregions$Ecoregion)
 
-# Check the new extent
-ext(aligned_raster)
+elevation_by_ecoregion <- list()
+
+for(i in names(ecoregion_list)){
+  
+  ecoregion <- ecoregion_list[[i]]
+  
+  masked_rast <- mask(dem_rast_downsampled, ecoregion)
+  
+  cropped_rast <- crop(masked_rast, ecoregion)
+  
+  elevation_by_ecoregion[[i]] <- cropped_rast
+}
+print(elevation_by_ecoregion)
+
+elevation_values <- list()
+
+
+for (i in names(elevation_by_ecoregion)) {
+
+  elevation_raster <- elevation_by_ecoregion[[i]]
+  
+  elevation_values[[i]] <- data.frame(elevation = elevation_values[[i]])
+}
+
+head(elevation_values[["East Cascades"]])
 ```
 
 
