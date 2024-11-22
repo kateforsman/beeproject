@@ -61,6 +61,8 @@ dem_rast_dsamp_df <- as.data.frame(dem_rast_downsampled, xy = TRUE)
 head(dem_rast_df)
 summary(values(dem_rast_downsampled))
 
+#save downsampled rast as .rdata file, then send to Kate  
+
 ```
 
 
@@ -71,8 +73,9 @@ summary(values(dem_rast_downsampled))
 ecoregions_vec <- st_read("C:/Users/Admin/Downloads/ds-environ-JS/5-lab-OR-fires/5-OR-fires/OR-ecoregions/Ecoregions_OregonConservationStrategy.shp")
 head(ecoregions_vec)
 #st_crs(dem_rast_downsampled)
-#st_crs(ecoregions_vec)
-ecoregions <- st_transform(ecoregions_vec, crs(dem_rast_downsampled), res=res(dem_rast_downsampled))
+crs(ecoregions_vec, proj = TRUE)
+crs(dem_rast_downsampled, proj = TRUE)
+ecoregions <- st_transform(ecoregions_vec, crs(dem_rast_downsampled))
 #st_crs(ecoregions)
 head(ecoregions)
 #elevation_crop <- crop(x = dem_rast_downsampled, y = ecoregions)
@@ -135,17 +138,35 @@ st_crs(ecoregions)
 
 ```{r Elevation data for ecoregion}
 
+# filtering for single ecoregion, in this case the East Cascades
 east_cascades <- ecoregions %>% filter(Ecoregion == "East Cascades")
 print(east_cascades)
 
-Ecas <- extract(x = dem_rast_downsampled, y = east_cascades, raw = FALSE)
+# extracting all elevation values (each pixel is 1 km since the data was decreased in res 100X from original 10x10m pixel size)
+## for the specific ecoregion
+Ecas <- extract(x = dem_rast_downsampled, y = east_cascades)
 print(Ecas)
 
+# plot of the ecoregion highlighted on the entire OR ecoregions map
 plot(st_geometry(ecoregions), col = "lightgrey", main = "East Cascades Ecoregion Highlighted")
 plot(st_geometry(east_cascades), col = "blue", add = TRUE)
 
+# histogram of elevation data for this ecoregion
 ggplot() +
-  geom_histogram(data = Ecas, aes(x = OR_DEM_10M_files))
+  geom_histogram(data = Ecas, aes(x = OR_DEM_10M_files)) +
+  xlab("elevation") +
+  ylab("sq. km")
+
+
+east_cascades_rast <- mask(dem_rast_downsampled, east_cascades)
+east_cascades_df <- as.data.frame(east_cascades_rast, xy = TRUE)
+print(east_cascades_df)
+
+# plot of the ecoregion alone with its associated elevation data 
+ggplot() +
+  geom_raster(data = east_cascades_df, aes(x=x, y=y, fill = OR_DEM_10M_files)) +
+  scale_fill_gradientn(colours = terrain.colors(7)) +
+  geom_sf(data = east_cascades, color = "black", fill = NA)
 
 ```
 
