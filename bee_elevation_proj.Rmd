@@ -84,7 +84,7 @@ head(ecoregions)
 
 elevation_all_ecoregions_plot <- ggplot() +
   geom_raster(data = dem_rast_dsamp_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
-  scale_fill_gradientn(colours = terrain.colors(7)) +
+  scale_fill_viridis_c() +
   geom_sf(data = ecoregions, color = "black", fill = NA) 
 
 elevation_all_ecoregions_plot
@@ -176,19 +176,28 @@ OBA_sf_ecas <- st_intersection(OBA_reprojected, east_cascades)
 # plot of the ecoregion alone with its associated elevation data 
 ggplot() +
   geom_raster(data = east_cascades_df, aes(x=x, y=y, fill = OR_DEM_10M_files)) +
+  geom_point(aes(x = geometry.x, y = geometry.y, color = as.factor(OBA_reprojected_df$ElevationBin)), size = 3) +
+  scale_color_viridis_d(name = "Elevation Bin") +  # Use a discrete color scale
   scale_fill_gradientn(colours = terrain.colors(7)) +
   geom_sf(data = east_cascades, color = "black", fill = NA) +
   geom_sf(data = OBA_sf_ecas, size = 0.8, color = "black", alpha = 0.2)
 
-OBA_sf_ecas$Elevation <- terra::extract(east_cascades_rast, OBA_sf_ecas, ID = FALSE)[[1]]
-head(bee_df)
-head(OBA_sf_ecas)
+# OBA_sf_ecas$Elevation <- terra::extract(east_cascades_rast, OBA_sf_ecas, ID = FALSE)[[1]]
+# head(bee_df)
+# head(OBA_sf_ecas)
 
-# basically added elevation column to oba data
+```
+
+
+
+
+```{r Filling out OBA df with elevation and ecoregion for each bee observation}
+
+# basically adding elevation column to oba data
 OBA_reprojected$Elevation <- terra::extract(dem_rast_downsampled, OBA_reprojected, ID = FALSE)[[1]]
 
 hist(OBA_reprojected$Elevation)
-?extract
+
 
 # adding ecoregion column to oba data
 template <- rast(vect(ecoregions), res = res(dem_rast_downsampled))
@@ -203,10 +212,35 @@ table(OBA_reprojected$Ecoregion)
 
 # turning reprojected OBA data into df
 OBA_reprojected_df <- as.data.frame(OBA_reprojected, xy=TRUE)
+
+
+
+# adding in elevation bins - seems like this method doesn't work quite right
+# since the border issues cause the ecoregions touching the edge of the 
+# OBA_reprojected_df <- OBA_reprojected_df %>%
+#   group_by(Ecoregion) %>%
+#   mutate(
+#     ElevationBin = cut(
+#       Elevation, 
+#       breaks = seq(min(Elevation), max(Elevation), length.out = 11), include.lowest = TRUE))
+
+# this binning method works but sometimes gives 11 bins instead of 10 
+OBA_reprojected_df <- OBA_reprojected_df %>%
+  group_by(Ecoregion) %>%
+  mutate(
+    ElevationBin = cut(
+      Elevation, 
+      breaks = 10,
+      include.lowest = TRUE))
+
 OBA_reprojected_df
+unique(OBA_reprojected_df$Ecoregion)
 
 
-#rastered_ecos <- polygonsToRaster(ecoregions, template, 'Ecoregion')
+
+table(unique(OBA_reprojected_df$Ecoregion))
+ 
+
 ```
 
 
@@ -215,7 +249,7 @@ OBA_reprojected_df
 ```{r reading in bee data and selecting OBA columns}
 
 OBA <- read.csv("C:/Users/Admin/Downloads/ds-environ-JS/6_lab_OBA_spatial/6_OBA_spatial/OBA_2018-2023.csv")
-
+head(OBA)
 
 
 OBA_filtered <- OBA %>% 
