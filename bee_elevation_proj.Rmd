@@ -254,28 +254,72 @@ compute_observed_tvd <- function(Elevation_Richness){
 }
 
   
-observed_tvd <- compute_observed_tvd(Elevation_Richness)
-  
-
-observed_tvd
+# observed_tvd <- compute_observed_tvd(Elevation_Richness)
+#   
+# 
+# observed_tvd
 
 ```
 
 ```{r TVD code continued}
 
-# Generating null distributions by shuffling elevation bins
+compute_null_tvd <- function(Elevation_Richness) {
+  Elevation_Richness %>%
+    group_by(Ecoregion) %>%
+    reframe(
+      null_tvd = calc_tvd(
+        sample(BeeSpeciesRichness),  # Shuffle richness values
+        rep(1, length(BeeSpeciesRichness))  # Uniform distribution
+      ))
+    
+}
+
+compute_observed_tvd(Elevation_Richness)
+compute_null_tvd(Elevation_Richness)
+# null doesn't work !!!
+
+combine_tvd_results <- function(Elevation_Richness, num_permutations = 1000) {
+  observed <- compute_observed_tvd(Elevation_Richness)
+  null <- compute_null_tvd(Elevation_Richness, num_permutations)
+  
+  # Combine observed and null into a single data frame
+  combined <- observed %>%
+    left_join(null, by = "Ecoregion")  # Match by Ecoregion
+  
+  return(combined)
+}
+
+# Observed TVD
+observed_tvd <- compute_observed_tvd(Elevation_Richness)
+observed_tvd
+# Null Distribution
+null_tvd <- compute_null_tvd(Elevation_Richness, num_permutations = 1000)
+
+# Combine Results
+combined_tvd <- combine_tvd_results(Elevation_Richness, num_permutations = 1000)
+
+# View Results
+print(combined_tvd)
+
+
+
+
+
+
+
+  # Generating null distributions by shuffling elevation bins
 generate_null_distribution <- function(Elevation_Richness, num_permutations = 1000) {
   null_tvd_list <- list()
   
-  for (ecoregion in unique(Elevation_Richness$ecoregion)) {
-    sub_data <- Elevation_Richness %>% filter(ecoregion == ecoregion)
+  for (ecoregion in unique(Elevation_Richness$Ecoregion)) {
+    sub_data <- Elevation_Richness %>% filter(ecoregion == Ecoregion)
     null_tvds <- numeric(num_permutations)
     
     for (i in 1:num_permutations) {
-      shuffled_bins <- sample(sub_data$elevation_bin)
+      shuffled_bins <- sample(sub_data$ElevationBin)
       shuffled_data <- sub_data %>%
-        mutate(ElevationBin = shuffled_bins) %>%
-        group_by(ElevationBin) %>%
+        mutate(shuffled_ElevationBin = shuffled_bins) %>%
+        group_by(shuffled_ElevationBin) %>%
         summarise(total_richness = sum(richness), .groups = "drop")
       
       null_tvds[i] <- calc_tvd(
