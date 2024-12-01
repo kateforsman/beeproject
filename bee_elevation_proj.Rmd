@@ -83,8 +83,6 @@ dem_rast_dsamp_df <- as.data.frame(dem_rast_downsampled, xy = TRUE)
 head(dem_rast_dsamp_df)
 summary(values(dem_rast_downsampled))
 
-#save downsampled rast as .rdata file, then send to Kate  
-
 ```
 
 
@@ -204,20 +202,126 @@ table(unique_ecoregions_with_na)
  
 # removing NA elevation bins
 OBA_reprojected_wBreaks_clean <- OBA_reprojected_wBreaks %>%
-  filter(!is.na(ElevationBin))
+  filter(!is.na(ElevationBin)) %>% 
+  filter(!is.na(Ecoregion))
+
 
 # Check the cleaned dataset
-head(OBA_reprojected_wBreaks_clean)
+(OBA_reprojected_wBreaks_clean)
 
 sum(is.na(OBA_reprojected_wBreaks_clean$ElevationBin))
 
-length(unique(OBA_reprojected_wBreaks_clean$ElevationBin[OBA_reprojected_wBreaks_clean$Ecoregion == "Coast Range"]))
+length(unique(OBA_reprojected_wBreaks_clean$ElevationBin[OBA_reprojected_wBreaks_clean$Ecoregion == "Nearshore"]))
 
 range(OBA_reprojected_wBreaks_clean$Elevation)
 
 levels(ElevationBin)
 
+
 ```
+
+```{r}
+
+Elevation_Richness <- OBA_reprojected_wBreaks_clean %>%
+  group_by(ElevationBin, Ecoregion) %>%
+  summarize(
+    BeeSpeciesRichness= length(unique(GenusSpecies)))
+
+Elevation_Richness
+
+
+# seems like all of the ecoregions have the correct number of bins, except
+## for Nearshore and Willamette Valley, which have 6 and 9 respectively
+
+```
+
+
+```{r Setting up TVD code}
+
+# Function to calculate Total Variation Distance
+calc_tvd <- function(observed, null) {
+  observed_dist <- observed / sum(observed) 
+  null_dist <- null / sum(null)             
+  tvd <- 0.5 * sum(abs(observed_dist - null_dist))
+  return(tvd)
+}
+
+# finding the observed tvd of each ecoregion
+compute_observed_tvd <- function(Elevation_Richness){
+  Elevation_Richness %>%
+    group_by(Ecoregion) %>%
+    summarize(observed_tvd = calc_tvd(BeeSpeciesRichness, rep(1, length(BeeSpeciesRichness))))
+}
+
+  
+observed_tvd <- compute_observed_tvd(Elevation_Richness)
+  
+
+observed_tvd
+
+```
+
+```{r TVD code continued}
+
+# Generating null distributions by shuffling elevation bins
+generate_null_distribution <- function(Elevation_Richness, num_permutations = 1000) {
+  null_tvd_list <- list()
+  
+  for (ecoregion in unique(Elevation_Richness$ecoregion)) {
+    sub_data <- Elevation_Richness %>% filter(ecoregion == ecoregion)
+    null_tvds <- numeric(num_permutations)
+    
+    for (i in 1:num_permutations) {
+      shuffled_bins <- sample(sub_data$elevation_bin)
+      shuffled_data <- sub_data %>%
+        mutate(ElevationBin = shuffled_bins) %>%
+        group_by(ElevationBin) %>%
+        summarise(total_richness = sum(richness), .groups = "drop")
+      
+      null_tvds[i] <- calc_tvd(
+        observed = shuffled_data$total_richness,
+        null = rep(1, nrow(shuffled_data))
+      )
+    }
+    
+    null_tvd_list[[ecoregion]] <- null_tvds
+  }
+  
+  return(null_tvd_list)
+}
+
+null_distributions <- generate_null_distribution(data)
+
+# Step 3: Compare observed TVD to null distributions
+compare_tvd <- function(observed_tvd, null_distributions) {
+  results <- data.frame(ecoregion = integer(), observed_tvd = numeric(), p_value = numeric())
+  
+  for (ecoregion in names(null_distributions)) {
+    null_tvds <- null_distributions[[ecoregion]]
+    observed <- observed_tvd %>% filter(ecoregion == as.numeric(ecoregion)) %>% pull(observed_tvd)
+    
+    # Calculate p-value
+    p_value <- mean(null_tvds >= observed)
+    
+    results <- rbind(results, data.frame(
+      ecoregion = as.numeric(ecoregion),
+      observed_tvd = observed,
+      p_value = p_value
+    ))
+  }
+  
+  return(results)
+}
+
+results <- compare_tvd(observed_tvd, null_distributions)
+
+# Step 4: Print results
+print(results)
+
+```
+
+
+
 
 ```{r}
 
