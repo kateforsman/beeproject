@@ -254,7 +254,7 @@ compute_observed_tvd <- function(Elevation_Richness){
 }
 
   
-# observed_tvd <- compute_observed_tvd(Elevation_Richness)
+compute_observed_tvd(Elevation_Richness)
 #   
 # 
 # observed_tvd
