@@ -197,7 +197,7 @@ OBA_reprojected_wBreaks <- OBA_reprojected %>%
 
 OBA_reprojected_wBreaks <- as.data.frame(OBA_reprojected_wBreaks)
 
-
+OBA_reprojected_wBreaks
 
 
 # Get unique ecoregions with NA ElevationBin
@@ -234,7 +234,10 @@ levels(ElevationBin)
 # splits data into separate ecoregions
 
 OBA_reprojected_wBreaks_clean$Ecoregion <- as.character(OBA_reprojected_wBreaks_clean$Ecoregion)
+
+# splitting to create list of data frames, each containing information for an ecoregion
 sp_occ <- split(OBA_reprojected_wBreaks_clean, OBA_reprojected_wBreaks_clean$Ecoregion)
+sp_occ
 shuffled_sp_occ <- list()
 for(i in 1:length(sp_occ)){
  shuffled_column <-sample(sp_occ[[i]]$ElevationBin, nrow(sp_occ[[i]]), replace = FALSE)
@@ -270,16 +273,19 @@ for(i in 1:length(shuffled_sp_occ)){
   
 }
 
+names(total_richness) <- names(shuffled_sp_occ)
 names(totalV) <- names(shuffled_sp_occ)
+totalV
 # makes TVD values a vector
 unlist(totalV, recursive = FALSE)
-
+totalV
 
 names(total_richness) <- names(shuffled_sp_occ)
 total_richness["Willamette Valley"]
 
 
 names(shuffled_sp_occ) <- names(sp_occ)
+
 # df for each ecoregion - has shuffled and normal elevation bins
 shuffled_sp_occ
 shuffled_sp_occ[["Coast Range"]]
@@ -291,6 +297,90 @@ OBA_reprojected_wBreaks_clean$shuffled_ElevationBin <- shuffled_Elevation
 
 OBA_reprojected_wBreaks_clean
 
+
+
+```
+```{r NUll distribution generation - maybe works???}
+
+set.seed(42) # For reproducibility
+
+# Initialize list to store null distributions for each ecoregion
+null_distributions <- list()
+
+# Number of repetitions
+reps <- 100
+
+# Loop through each ecoregion
+for (i in 1:length(sp_occ)) {
+  null_tvd <- numeric(reps) # Vector to store TVD values for repetitions
+  
+  for (j in 1:reps) {
+    # Shuffle the ElevationBin
+    shuffled_column <- sample(sp_occ[[i]]$ElevationBin, nrow(sp_occ[[i]]), replace = FALSE)
+    new_sp_occ <- sp_occ[[i]]
+    new_sp_occ$shuffled_ElevationBin <- shuffled_column
+    
+    # Calculate observed and shuffled richness
+    observed_richness <- new_sp_occ %>%
+      group_by(ElevationBin) %>%
+      summarize(BeeSpeciesRichness = length(unique(Species)))
+    
+    generated_richness <- new_sp_occ %>%
+      group_by(shuffled_ElevationBin) %>%
+      summarize(shuffled_BeeSpeciesRichness = length(unique(Species)))
+    
+    colnames(generated_richness) <- c("ElevationBin", "shuffled_BeeSpeciesRichness")
+    total_richness <- left_join(observed_richness, generated_richness)
+    
+    # Calculate TVD and store it
+    null_tvd[j] <- calc_tvd(total_richness$BeeSpeciesRichness, total_richness$shuffled_BeeSpeciesRichness)
+  }
+  
+  # Store the null distribution for this ecoregion
+  null_distributions[[names(sp_occ)[i]]] <- null_tvd
+}
+
+# Combine all null distributions into a single data frame for plotting
+null_dist_df <- do.call(rbind, lapply(names(null_distributions), function(ecoregion) {
+  data.frame(
+    Ecoregion = ecoregion,
+    TVD = null_distributions[[ecoregion]]
+  )
+}))
+
+# Create a data frame for observed TVD values
+observed_tvd_df <- data.frame(
+  Ecoregion = names(totalV),
+  ObservedTVD = unlist(totalV)
+)
+
+# Merge observed TVD with null distributions
+null_dist_with_obs <- merge(null_dist_df, observed_tvd_df, by = "Ecoregion")
+
+# Calculate p-values
+p_values <- null_dist_with_obs %>%
+  group_by(Ecoregion) %>%
+  summarize(
+    ObservedTVD = first(ObservedTVD),
+    PValue = mean(TVD >= ObservedTVD)
+  )
+
+# Plot histograms with observed TVD lines
+histogram_plot <- ggplot(null_dist_with_obs, aes(x = TVD, fill = Ecoregion)) +
+  geom_histogram(alpha = 0.6, bins = 30, position = "identity") +
+  geom_vline(data = p_values, aes(xintercept = ObservedTVD, color = Ecoregion), linetype = "dashed", linewidth = 1) +
+  facet_wrap(~ Ecoregion, scales = "free_y") +
+  labs(
+    title = "Null Distributions of TVD by Ecoregion with Observed TVD Lines",
+    x = "TVD",
+    y = "Frequency"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+histogram_plot
+
+p_values 
 
 
 ```
