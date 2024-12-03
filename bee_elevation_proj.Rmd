@@ -116,11 +116,13 @@ head(OBA)
 names(OBA)
 
 OBA_filtered <- OBA %>% 
-  dplyr::select("Dec..Lat." , "Dec..Long.", "Genus", "Species", "State") %>%
+  dplyr::select("Dec..Lat." , "Dec..Long.", "Species", "State") %>%
   rename(Latitude = Dec..Lat., Longitude = Dec..Long.) %>%
-  mutate(GenusSpecies = paste(Genus, Species, sep = " ")) %>%
-  filter(GenusSpecies != " ") %>%
-  dplyr::select("Latitude" , "Longitude", "GenusSpecies", "State")
+  filter(!is.na(Species) & Species != "") %>%
+  dplyr::select("Latitude" , "Longitude", "Species", "State")
+
+OBA_filtered
+
 
 head(OBA_filtered)
 
@@ -190,8 +192,12 @@ OBA_reprojected_wBreaks <- OBA_reprojected %>%
   mutate(
     ElevationBin = cut(
       Elevation, 
-      breaks = 10,
+      breaks = 4,
       include.lowest = TRUE))
+
+OBA_reprojected_wBreaks <- as.data.frame(OBA_reprojected_wBreaks)
+
+
 
 
 # Get unique ecoregions with NA ElevationBin
@@ -203,7 +209,9 @@ table(unique_ecoregions_with_na)
 # removing NA elevation bins
 OBA_reprojected_wBreaks_clean <- OBA_reprojected_wBreaks %>%
   filter(!is.na(ElevationBin)) %>% 
-  filter(!is.na(Ecoregion))
+  filter(!is.na(Ecoregion)) %>% 
+  filter(Ecoregion != "Nearshore")
+
 
 
 # Check the cleaned dataset
@@ -217,21 +225,94 @@ range(OBA_reprojected_wBreaks_clean$Elevation)
 
 levels(ElevationBin)
 
+# shuffle elevation bins - identity of species varies randomly
+# take observed # of species in elevation bin and subtract generated #
+# tvd is sum abs(obs - expected) /2 
+
+#shuffle elevation bins
+
+# splits data into separate ecoregions
+
+OBA_reprojected_wBreaks_clean$Ecoregion <- as.character(OBA_reprojected_wBreaks_clean$Ecoregion)
+sp_occ <- split(OBA_reprojected_wBreaks_clean, OBA_reprojected_wBreaks_clean$Ecoregion)
+shuffled_sp_occ <- list()
+for(i in 1:length(sp_occ)){
+ shuffled_column <-sample(sp_occ[[i]]$ElevationBin, nrow(sp_occ[[i]]), replace = FALSE)
+ new_sp_occ <- sp_occ[[i]]
+ new_sp_occ$shuffled_ElevationBin <- shuffled_column
+ shuffled_sp_occ[[i]] <- new_sp_occ
+}
+
+calc_tvd <- function(observed, null) {
+
+  observed_dist <- observed / sum(observed) 
+  null_dist <- null / sum(null)             
+  tvd <- 0.5 * sum(abs(observed_dist - null_dist))
+  return(tvd)
+}
+
+totalV <- list()
+
+for(i in 1:length(shuffled_sp_occ)){
+  observed_richness <- shuffled_sp_occ[[i]] %>%
+  group_by(ElevationBin) %>%
+  summarize(
+    BeeSpeciesRichness = length(unique(Species)))
+  
+  generated_richness <- shuffled_sp_occ[[i]] %>%
+  group_by(shuffled_ElevationBin) %>%
+  summarize(
+    shuffled_BeeSpeciesRichness = length(unique(Species)))
+  colnames(generated_richness) <- c("ElevationBin", "shuffled_BeeSpeciesRichness")
+  total_richness <- left_join(observed_richness, generated_richness)
+ 
+  totalV[[i]] <- calc_tvd(total_richness$BeeSpeciesRichness,total_richness$shuffled_BeeSpeciesRichness)
+  
+}
+
+names(totalV) <- names(shuffled_sp_occ)
+# makes TVD values a vector
+unlist(totalV, recursive = FALSE)
+
+
+names(total_richness) <- names(shuffled_sp_occ)
+total_richness["Willamette Valley"]
+
+
+names(shuffled_sp_occ) <- names(sp_occ)
+# df for each ecoregion - has shuffled and normal elevation bins
+shuffled_sp_occ
+shuffled_sp_occ[["Coast Range"]]
+sp_occ[["Nearshore"]]
+names(shuffled_sp_occ)
+
+shuffled_Elevation <- sample(OBA_reprojected_wBreaks_clean$ElevationBin, nrow(OBA_reprojected_wBreaks_clean), replace = FALSE)
+OBA_reprojected_wBreaks_clean$shuffled_ElevationBin <- shuffled_Elevation
+
+OBA_reprojected_wBreaks_clean
+
+
 
 ```
 
 ```{r}
 
-Elevation_Richness <- OBA_reprojected_wBreaks_clean %>%
+Elevation_Richness <- sp_occ %>%
   group_by(ElevationBin, Ecoregion) %>%
   summarize(
-    BeeSpeciesRichness= length(unique(GenusSpecies)))
+    BeeSpeciesRichness= length(unique(Species)))
+
+
+
+shuffled_Elevation_Richness <- shuffled_sp_occ %>%
+  group_by(shuffled_ElevationBin, Ecoregion) %>%
+  summarize(
+    BeeSpeciesRichness= length(unique(Species)))
 
 Elevation_Richness
 
+shuffled_Elevation_Richness
 
-# seems like all of the ecoregions have the correct number of bins, except
-## for Nearshore and Willamette Valley, which have 6 and 9 respectively
 
 ```
 
