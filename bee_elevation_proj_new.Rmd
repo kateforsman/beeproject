@@ -17,57 +17,6 @@ library(RColorBrewer)
 ```
 
 
-```{r, loading in Rdata}
-
-#setwd("~/Desktop/beeproject")
-#load("~/Desktop/beeproject/dem_rast_downsampled.RData")
-#class(dem_rast_downsampled)
-#str(dem_rast_downsampled)
-
-# Print metadata
-print(dem_rast_downsampled)
-extent(dem_rast_downsampled)      # Get spatial extent
-crs(dem_rast_downsampled)         # Get the coordinate reference system
-res(dem_rast_downsampled)         # Get resolution
-
-# Plot the DEM
-plot(dem_rast_downsampled, main = "Digital Elevation Model")
-
-
-
-```
-
-
-
-```{r - Random stuff that may be useful later}
-#gdb_file <- "C:/Users/Admin/Downloads/OR_DEM_10M.gdb/OR_DEM_10M.gdb/a00000029.gdbtable"
-#layers <- st_layers(gdb_file)
-#print(layers)
-
-#gdb_data <- st_read(dsn = gdb_file, layer = "fras_blk_DEM_10meter_Oregon")
-
-
-#head(gdb_data)
-
-# commented code below is for cropping the extent of the data, will show a smaller portion of the state rather than a reduced res version
-
-#extent <- ext(dem_rast) * 0.01  # Crop to 1% of the original size
-#dem_rast_subset <- crop(dem_rast, extent)
-
-# Convert the subset to a data frame
-#dem_rast_df <- as.data.frame(dem_rast_subset, xy = TRUE)
-#dem_rast_df <- as.data.frame(dem_rast, xy = TRUE)
-#dem_rast_df
-
-#gdb_path <- "C:/Users/Admin/Downloads/OR_DEM_10M_files.gdb"
-#raster <- rast("C:/Users/Admin/Downloads/OR_DEM_10M_files.gdb")
-#raster
-#layers <- terra::sources(gdb_path)
-```
-
-
-
-
 
 ```{r - Code for reading in a reducing resolution of DEM data}
 
@@ -100,8 +49,8 @@ class(dem_rast_downsampled)
 ecoregions <- st_transform(ecoregions_vec, crs(dem_rast_downsampled), res=res(dem_rast_downsampled))
 #st_crs(ecoregions)
 head(ecoregions)
-elevation_crop <- crop(x = dem_rast_downsampled, y = ecoregions)
-elevation_crop_df <- as.data.frame(elevation_crop, xy= TRUE)
+#elevation_crop <- crop(x = dem_rast_downsampled, y = ecoregions)
+#elevation_crop_df <- as.data.frame(elevation_crop, xy= TRUE)
 
 elevation_all_ecoregions_plot <- ggplot() +
   geom_raster(data = dem_rast_dsamp_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
@@ -113,314 +62,38 @@ elevation_all_ecoregions_plot
 ```
 ```{r Stuff for matching extent - doesn't work correctly}
 
-# trying to crop the extent of the raster data so that it fits completely into the ecoregions data, but 
-## neither of the below seem to work
-
-#ecoregions_vec <- st_crop(ecoregions_vec, st_bbox(dem_rast_downsampled))
-#dem_rast_downsampled <- crop(dem_rast_downsampled, st_bbox(ecoregions_vec))
-
-# commented code below is something I found online for matching the extents of both data sets, results are weird
-
-# names(ecoregions_vec)
 crs(dem_rast_downsampled, proj = TRUE)
 crs(ecoregions_vec, proj = TRUE)
-# ext(dem_rast_downsampled)
-# ext(ecoregions_vec)
-# 
-# aligned_raster <- resample(dem_rast_downsampled, rast(ecoregions_vec), method = "bilinear") 
-# 
-# ext(aligned_raster)
-
-#align_dem_rast_df <- as.data.frame(aligned_raster, xy = TRUE)
-#align_dem_rast_df
-
-#elevation_all_ecoregions_plot <- ggplot() +
-  #geom_raster(data = align_dem_rast_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
-  #scale_fill_gradientn(colours = terrain.colors(7)) +
-  #geom_sf(data = ecoregions_vec, color = "black", fill = NA) 
-
-#elevation_all_ecoregions_plot
 
 ```
 
 
 ```{r Splitting the ecoregions data into the separate ecoregions with elevation data}
 
-# names(ecoregions_vec)
-# crs(dem_rast_downsampled, proj = TRUE)
-# crs(ecoregions_vec, proj = TRUE)
-# ext(dem_rast_downsampled)
-# ext
 ecoregions_vec
 minmax(dem_rast_downsampled)
-st_crs(elevation_crop)
 st_crs(ecoregions)
 
 ```
-
-```{r Elevation data for east cascades}
-
-east_cascades <- ecoregions %>% filter(Ecoregion == "East Cascades")
-print(east_cascades)
-
-Ecas <- terra::extract(x = dem_rast_downsampled, y = east_cascades, raw = FALSE)
-print(Ecas)
-
-plot(st_geometry(ecoregions), col = "lightgrey", main = "East Cascades Ecoregion Highlighted")
-plot(st_geometry(east_cascades), col = "blue", add = TRUE)
-
-ggplot() +
-  geom_histogram(data = Ecas, aes(x = OR_DEM_10M_files))
-
-```
-
-
-
-```{r Elevation data for Klamath Mountains}
-
-klamath_mt <- ecoregions %>% filter(Ecoregion == "Klamath Mountains")
-print(klamath_mt)
-
-Kmt <- extract(x = dem_rast_downsampled, y = klamath_mt, raw = FALSE)
-print(Ecas)
-
-plot(st_geometry(ecoregions), col = "lightgrey", main = "Klamath Mountains Ecoregion Highlighted")
-plot(st_geometry(klamath_mt), col = "blue", add = TRUE)
-
-ggplot() +
-  geom_histogram(data = Kmt, aes(x = OR_DEM_10M_files))
-
-
-
-
-```
-
-
-```{r, Filling out OBA df with elevation and ecoregion for each bee observation}
-
-OBA_reprojected <- st_transform(OBA_sf, crs(dem_rast))
-
-# basically adding elevation column to oba data
-OBA_reprojected$Elevation <- terra::extract(dem_rast_downsampled, OBA_reprojected, ID = FALSE)[[1]]
-
-hist(OBA_reprojected$Elevation)
-
-
-# adding ecoregion column to oba data
-template <- rast(vect(ecoregions), res = res(dem_rast_downsampled))
-
-rast_ecoregions <- rasterize(vect(ecoregions), template, field = "Ecoregion")
-
-OBA_reprojected$Ecoregion <- terra::extract(rast_ecoregions, OBA_reprojected, ID = FALSE)[[1]]
-
-plot(rast_ecoregions)
-table(OBA_reprojected$Ecoregion)
-
-
-# turning reprojected OBA data into df
-OBA_reprojected_df <- as.data.frame(OBA_reprojected, xy=TRUE)
-
-
-
-# adding in elevation bins - seems like this method doesn't work quite right
-# since the border issues cause the ecoregions touching the edge of the 
-# OBA_reprojected_df <- OBA_reprojected_df %>%
-#   group_by(Ecoregion) %>%
-#   mutate(
-#     ElevationBin = cut(
-#       Elevation, 
-#       breaks = seq(min(Elevation), max(Elevation), length.out = 11), include.lowest = TRUE))
-
-# this binning method works but sometimes gives 11 bins instead of 10 
-OBA_reprojected_df <- OBA_reprojected_df %>%
-  group_by(Ecoregion) %>%
-  mutate(
-    ElevationBin = cut(
-      Elevation, 
-      breaks = 10,
-      include.lowest = TRUE))
-
-OBA_reprojected_df
-unique(OBA_reprojected_df$Ecoregion)
-
-
-
-table(unique(OBA_reprojected_df$Ecoregion))
- 
-# this binning method works but sometimes gives 11 bins instead of 10 
-OBA_reprojected_wBreaks <- OBA_reprojected %>%
-  group_by(Ecoregion) %>%
-  mutate(
-    ElevationBin = cut(
-      Elevation, 
-      breaks = 10,
-      include.lowest = TRUE))
-
-
-# Get unique ecoregions with NA ElevationBin
-unique_ecoregions_with_na <- unique(na_rows$Ecoregion)
-
-# Display the ecoregions
-table(unique_ecoregions_with_na)
- 
-# removing NA elevation bins
-OBA_reprojected_wBreaks_clean <- OBA_reprojected_wBreaks %>%
-  filter(!is.na(ElevationBin)) %>% 
-  filter(!is.na(Ecoregion))
-
-
-# Check the cleaned dataset
-(OBA_reprojected_wBreaks_clean)
-
-sum(is.na(OBA_reprojected_wBreaks_clean$ElevationBin))
-
-length(unique(OBA_reprojected_wBreaks_clean$ElevationBin[OBA_reprojected_wBreaks_clean$Ecoregion == "Nearshore"]))
-
-range(OBA_reprojected_wBreaks_clean$Elevation)
-
-levels(ElevationBin)
-
-```
-
-
-```{r, species diversity in each ecoregion}
-
-OBA_reprojected_wBreaks_clean
-
-#OBA_reprojected_wBreaks_clean %>%
-  
-
-unique_bees_by_ecoregion <- OBA_reprojected_wBreaks_clean %>%
-  group_by(Ecoregion) %>%
-  summarise(unique_genusspecies = list(unique(GenusSpecies)))
-
-unique_bees_by_ecoregion
-
-library(dplyr)
-
-# Count unique GenusSpecies names per ecoregion
-genus_species_count <- OBA_reprojected_wBreaks_clean %>%
-  group_by(Ecoregion) %>%                                  # Group by ecoregion
-  summarise(unique_count = n_distinct(GenusSpecies))       # Count unique GenusSpecies
-
-# View the result
-genus_species_count
-
-
-
-```
-
-
 
 
 
 ```{r reading in bee data and selecting OBA columns}
 
-OBA <- read.csv("C:/Users/Admin/Downloads/ds-environ-JS/6_lab_OBA_spatial/6_OBA_spatial/OBA_2018-2023.csv")
+OBA <- read.csv("~/Downloads/6_OBA_spatial/OBA_2018-2023.csv")
 head(OBA)
 
-
-OBA_filtered <- OBA %>% 
-  select("Dec..Lat." , "Dec..Long.", "Genus", "Species", "State") %>%
+OBA_filtered <- OBA %>%
+  select("Dec..Lat." , "Dec..Long.", "Species", "State") %>%
   rename(Latitude = Dec..Lat., Longitude = Dec..Long.) %>%
-  mutate(GenusSpecies = paste(Genus, Species, sep = " ")) %>%
-  filter(GenusSpecies != " ") %>%
-  select("Latitude" , "Longitude","State", "GenusSpecies")
+  filter(!is.na(Species) & Species != "")
 
-head(OBA_filtered)
-
-
+OBA_filtered
 ```
 
-
-
-
-```{r,reading in bee data and selecting OBA columns}
-
-OBA <- read.csv("~/Downloads/6_OBA_spatial/OBA_2018-2023.csv")
-OBA
-
-
-OBA_filtered <- OBA %>% 
-  select("Dec..Lat." , "Dec..Long.", "Genus", "Species", "State") %>%
-  rename(Latitude = Dec..Lat., Longitude = Dec..Long.) %>%
-  mutate(GenusSpecies = paste(Genus, Species, sep = " ")) %>%
-  filter(GenusSpecies != " ") %>%
-  select("Latitude" , "Longitude", "State", "GenusSpecies")
-
-head(OBA_filtered)
-
-
-```
-
-
-
-```{r getting rid of na values and cleaning longitdue and converting to sf}
-
-# sum(!is.na(OBA$Longitude))        # Count rows where Longitude is not NA
-# sum(!is.na(OBA$Latitude))         # Count rows where Latitude is not NA
-# sum(OBA$Longitude > -130)         # Count rows where Longitude > -125
-# sum(OBA$Longitude < -116)         # Count rows where Longitude < -116
-# 
-# summary(OBA$Longitude)
-# sum(is.na(OBA$Longitude))
-
-#checking rows
-# OBA_non_na <- OBA %>%
-#   filter(!is.na(Longitude) & !is.na(Latitude))
-# nrow(OBA_non_na)
-# 
-# OBA_in_range <- OBA %>%
-#    filter(Longitude > -130 & Longitude < -116)
-# nrow(OBA_in_range)
-# 
-# #changing to numberic
-# OBA$Longitude <- as.numeric(as.character(OBA$Longitude))
-# 
-# OBA_clean <- OBA %>%
-#   filter(!is.na(Longitude) & !is.na(Latitude)) %>%
-#   filter(Longitude > -130 & Longitude < -116)
-# 
-# head(OBA_clean)
-
-
-#filter(Longitude != 176.015)
-
-# unique(OBA_clean$Longitude)
-# 
-# longitude <- c(OBA_clean$Longitude)
-# longitude
-# filtered_longitude1 <- longitude[longitude < -130]
-# filtered_longitude1
-# 
-# filtered_longitude2 <- longitude[longitude > -116]
-# filtered_longitude2
-
-
-```
 
 
 ```{r, getting rid of na values and cleaning latitdue}
-# 
-# summary(OBA$Latitude)
-# sum(is.na(OBA$Latitude))
-# 
-# sum(!is.na(OBA$Latitude))        # Count rows where Longitude is not NA
-# sum(!is.na(OBA$Latitude))         # Count rows where Latitude is not NA
-# sum(OBA$Latitude > -47)         # Count rows where Longitude > -125
-# sum(OBA$Latitude < 43)
-
-#checking rows
-# OBA_non_na <- OBA %>%
-#    filter(!is.na(Longitude) & !is.na(Latitude))
-#  nrow(OBA_non_na)
-# 
-# OBA_in_range <- OBA %>%
-#    filter(Latitude > 47 & Latitude < -43)
-#  nrow(OBA_in_range) 
- 
-#changing to numberic
-#OBA$Latitude <- as.numeric(as.character(OBA$Latitude))
  
 OBA_clean <- OBA_filtered %>%
   filter(!is.na(Longitude) & !is.na(Latitude)) %>%
@@ -438,7 +111,6 @@ head(OBA_clean)
 
 
 
-
 ```{r, converting to sf}
 
 OBA_sf <- st_as_sf(OBA_clean,
@@ -448,33 +120,253 @@ head(OBA_sf)
 
 OBA_sf
 
+OBA_reprojected <- st_transform(OBA_sf, crs(dem_rast))
+
+class(OBA_reprojected)
+
 ```
 
 
 
+```{r Filling out OBA df with elevation and ecoregion for each bee observation}
+
+# basically adding elevation column to oba data
+OBA_reprojected$Elevation <- terra::extract(dem_rast_downsampled, OBA_reprojected, ID = FALSE)[[1]]
+
+hist(OBA_reprojected$Elevation)
+
+
+# adding ecoregion column to oba data
+template <- rast(vect(ecoregions), res = res(dem_rast_downsampled))
+
+rast_ecoregions <- rasterize(vect(ecoregions), template, field = "Ecoregion")
+
+OBA_reprojected$Ecoregion <- terra::extract(rast_ecoregions, OBA_reprojected, ID = FALSE)[[1]]
+
+OBA_reprojected
+plot(rast_ecoregions)
+table(OBA_reprojected$Ecoregion)
+
+
+# turning reprojected OBA data into df
+OBA_reprojected_df <- as.data.frame(OBA_reprojected, xy=TRUE)
+class(OBA_reprojected_df)
+
+
+# this binning method works
+OBA_reprojected_wBreaks <- OBA_reprojected %>%
+  group_by(Ecoregion) %>%
+  mutate(
+    ElevationBin = cut(
+      Elevation, 
+      breaks = 4,
+      include.lowest = TRUE))
+
+OBA_reprojected_wBreaks <- as.data.frame(OBA_reprojected_wBreaks)
+
+OBA_reprojected_wBreaks
+ 
+# removing NA elevation bins
+OBA_reprojected_wBreaks_clean <- OBA_reprojected_wBreaks %>%
+  filter(!is.na(ElevationBin)) %>% 
+  filter(!is.na(Ecoregion)) %>% 
+  filter(Ecoregion != "Nearshore")
+
+OBA_reprojected_wBreaks_clean$Ecoregion <- as.character(OBA_reprojected_wBreaks_clean$Ecoregion)
+
+# splitting to create list of data frames, each containing information for an ecoregion
+sp_occ <- split(OBA_reprojected_wBreaks_clean, OBA_reprojected_wBreaks_clean$Ecoregion)
+sp_occ
+shuffled_sp_occ <- list()
+for(i in 1:length(sp_occ)){
+ shuffled_column <-sample(sp_occ[[i]]$ElevationBin, nrow(sp_occ[[i]]), replace = FALSE)
+ new_sp_occ <- sp_occ[[i]]
+ new_sp_occ$shuffled_ElevationBin <- shuffled_column
+ shuffled_sp_occ[[i]] <- new_sp_occ
+}
+
+calc_tvd <- function(observed, null) {
+
+  observed_dist <- observed / sum(observed) 
+  null_dist <- null / sum(null)             
+  tvd <- 0.5 * sum(abs(observed_dist - null_dist))
+  return(tvd)
+}
+
+totalV <- list()
+
+for(i in 1:length(shuffled_sp_occ)){
+  observed_richness <- shuffled_sp_occ[[i]] %>%
+  group_by(ElevationBin) %>%
+  summarize(
+    BeeSpeciesRichness = length(unique(Species)))
+  
+  generated_richness <- shuffled_sp_occ[[i]] %>%
+  group_by(shuffled_ElevationBin) %>%
+  summarize(
+    shuffled_BeeSpeciesRichness = length(unique(Species)))
+  colnames(generated_richness) <- c("ElevationBin", "shuffled_BeeSpeciesRichness")
+  total_richness <- left_join(observed_richness, generated_richness)
+ 
+  totalV[[i]] <- calc_tvd(total_richness$BeeSpeciesRichness,total_richness$shuffled_BeeSpeciesRichness)
+  
+}
+
+names(total_richness) <- names(shuffled_sp_occ)
+names(totalV) <- names(shuffled_sp_occ)
+totalV
+# makes TVD values a vector
+unlist(totalV, recursive = FALSE)
+totalV
+
+names(total_richness) <- names(shuffled_sp_occ)
+#total_richness["Willamette Valley"]
+
+
+names(shuffled_sp_occ) <- names(sp_occ)
+
+# df for each ecoregion - has shuffled and normal elevation bins
+shuffled_sp_occ
+shuffled_sp_occ[["Coast Range"]]
+sp_occ[["Nearshore"]]
+names(shuffled_sp_occ)
+
+shuffled_Elevation <- sample(OBA_reprojected_wBreaks_clean$ElevationBin, nrow(OBA_reprojected_wBreaks_clean), replace = FALSE)
+OBA_reprojected_wBreaks_clean$shuffled_ElevationBin <- shuffled_Elevation
+
+OBA_reprojected_wBreaks_clean
+
+class(sp_occ) 
+
+sp_occ
+
+```
+
+```{r NUll distribution -- Kate}
+#TVD calculation
+calc_tvd <- function(observed, null) {
+  observed_dist <- observed / sum(observed) 
+  null_dist <- null / sum(null)             
+  tvd <- 0.5 * sum(abs(observed_dist - null_dist))
+  return(tvd)
+}
+#repetitions, empty list for null, emptry vector for observed
+reps <- 100
+null_tvd_list <- list()
+observed_tvd <- numeric(length(sp_occ))
+#loop through every ecoregion
+for (i in 1:length(sp_occ)) {
+  null_tvd <- numeric(reps)
+  
+  #calculate observed richnes 
+  observed_richness <- sp_occ[[i]] %>%
+    group_by(ElevationBin) %>%
+    summarize(BeeSpeciesRichness = length(unique(Species)))
+  
+  # Compute observed TVD
+  generated_richness <- shuffled_sp_occ[[i]] %>%
+    group_by(shuffled_ElevationBin) %>%
+    summarize(shuffled_BeeSpeciesRichness = length(unique(Species)))
+  
+  colnames(generated_richness) <- c("ElevationBin", "shuffled_BeeSpeciesRichness")
+  total_richness <- left_join(observed_richness, generated_richness)
+  observed_tvd[i] <- calc_tvd(
+    total_richness$BeeSpeciesRichness,
+    total_richness$shuffled_BeeSpeciesRichness
+  )
+  #repetitions to generate null
+  for (j in 1:reps) {
+    # Shuffle ElevationBin
+    shuffled_column <- sample(sp_occ[[i]]$ElevationBin, nrow(sp_occ[[i]]), replace = FALSE)
+    new_sp_occ <- sp_occ[[i]]
+    new_sp_occ$shuffled_ElevationBin <- shuffled_column
+    
+    # Calculate richness based on shuffled ElevationBin
+    generated_richness <- new_sp_occ %>%
+      group_by(shuffled_ElevationBin) %>%
+      summarize(shuffled_BeeSpeciesRichness = length(unique(Species)))
+    
+    colnames(generated_richness) <- c("ElevationBin", "shuffled_BeeSpeciesRichness")
+    total_richness <- left_join(observed_richness, generated_richness)
+    
+    # Compute and store TVD for this shuffle
+    null_tvd[j] <- calc_tvd(
+      total_richness$BeeSpeciesRichness,
+      total_richness$shuffled_BeeSpeciesRichness
+    )
+  }
+  
+  null_tvd_list[[i]] <- null_tvd # Store null TVD distribution for this ecoregion
+}
+
+
+null_tvd_df <- do.call(rbind, lapply(1:length(null_tvd_list), function(i) {
+  data.frame(
+    Ecoregion = names(sp_occ)[i],
+    TVD = null_tvd_list[[i]],
+    Type = "Null"
+  )
+}))
+
+observed_tvd_df <- data.frame(
+  Ecoregion = names(sp_occ),
+  TVD = observed_tvd,
+  Type = "Observed"
+)
+
+combined_tvd_df <- rbind(null_tvd_df, observed_tvd_df)
+
+# Plot histogram for each ecoregion
+histograms_for_eco <- ggplot(combined_tvd_df, aes(x = TVD, fill = Ecoregion)) +
+  geom_histogram(data = subset(combined_tvd_df, Type == "Null"), bins = 40, alpha = 0.6) +
+  geom_vline(data = subset(combined_tvd_df, Type == "Observed"), aes(xintercept = TVD, color = Type), linetype = "solid") +
+  facet_wrap(~Ecoregion, scales = "free") +
+  theme_minimal() +
+  labs(
+    title = "Total Variation Distance by Ecoregion: Null and Observed",
+    x = "TVD",
+    y = "Count",
+    fill = "Ecoregion Null TVD" ,
+    color = "Observed TVD"
+  )
+
+histograms_for_eco
+
+```
 
 
 
+```{r, pvalues -- Kate}
+
+# Assuming the ecoregion names are in observed_tvd_df$Ecoregion
+names(null_tvd_list) <- observed_tvd_df$Ecoregion
+
+null_tvd_list
+
+# Loop through each ecoregion
+for (ecoregion_name in names(null_tvd_list)) {
+  # Get the observed TVD for the current ecoregion
+  observed_tvd <- observed_tvd_df$ObservedTVD[observed_tvd_df$Ecoregion == ecoregion_name]
+  
+  # Get the null distribution for the current ecoregion
+  null_distribution <- null_tvd_list[[ecoregion_name]]
+  
+  # Calculate the p-value as the proportion of null values greater than or equal to the observed TVD
+  p_value <- mean(null_distribution >= observed_tvd)
+  
+  # Store the p-value in the list
+  p_values[[ecoregion_name]] <- p_value
+}
+
+# View the p-values for each ecoregion
+p_values <- as.data.frame(p_values)
+p_values
+
+
+```
 
 
 ```{r, plotting OBA data}
-
-#crs(ecoregions_OR, proj=TRUE)
-#crs(OBA_sf)
-#crs(dem_rast_downsampled, proj = TRUE)
-
-crs("EPSG:4326")
-
-# current_bbox <- st_bbox(bee_species_sp)
-# print(current_bbox)
-# 
-# # Defining a new bounding box
-# new_bbox <- st_bbox(c(xmin = -123.414, ymin = 41.998, xmax = -117.227, ymax = 45.868), crs = st_crs(bee_species_sp))
-# 
-# # Cropping to the new bounding box
-# bee_data_cropped <- st_crop(bee_species_sp, new_bbox)
-# 
-# print(st_bbox(bee_data_cropped))
 
 cat(sort(unique(OBA_clean$Latitude)))
 cat(sort(unique(OBA_clean$Longitude)))
@@ -485,34 +377,9 @@ ggplot() +
 ```
 
 
+
+
 ```{r, final elevation/ecoregion/bee map}
-
-# ext(ecoregions_vec)
-# ext(bee_data_cropped)
-# ext(dem_rast)
-
-# crs(ecoregions)
-# crs(bee_data_cropped)
-# crs(dem_rast)
-
-
-# bee_data_reprojected <- st_transform(bee_data_cropped, crs = 2992)
-# 
-# # DEM extent as SpatExtent
-# dem_extent <- ext(dem_rast_downsampled)
-# 
-# # Convert SpatExtent to an sf polygon
-# dem_extent_sf <- st_as_sf(as.polygons(dem_extent, crs = crs(dem_rast_downsampled)))
-# 
-# # Ensure the bee data and DEM extent are in the same CRS
-# bee_data_cropped <- st_transform(bee_data_cropped, crs(dem_extent_sf))
-# 
-# bee_data_clipped <- st_intersection(bee_data_cropped, dem_extent_sf)
-
-# OBA_sf <- st_transform(OBA_sf, crs(dem_rast_downsampled), res=res(dem_rast_downsampled))
-# 
-# OBA_sf_rast <- mask(dem_rast_downsampled, OBA_sf)
-# OBA_df <- as.data.frame(OBA_sf_rast, xy = TRUE)
 
 final_map <- ggplot() +
   geom_raster(data = dem_rast_dsamp_df, aes(x = x, y = y, fill = OR_DEM_10M_files)) +
@@ -532,341 +399,43 @@ ggsave("beemap.png", final_map)
 
 
 
-```{r Setting up TVD code}
 
-Elevation_Richness <- OBA_reprojected_wBreaks_clean %>%
-  group_by(ElevationBin, Ecoregion) %>%
-  summarize(
-    BeeSpeciesRichness= length(unique(GenusSpecies)), .groups = "keep")
-Elevation_Richness
-
-# Function to calculate Total Variation Distance
-calc_tvd <- function(observed, null) {
-  observed_dist <- observed / sum(observed) 
-  null_dist <- null / sum(null)             
-  tvd <- 0.5 * sum(abs(observed_dist - null_dist))
-  return(tvd)
-}
-
-# finding the observed tvd of each ecoregion
-compute_observed_tvd <- function(Elevation_Richness){
-  Elevation_Richness %>%
-    group_by(Ecoregion) %>%
-    summarize(observed_tvd = calc_tvd(BeeSpeciesRichness, rep(1, length(BeeSpeciesRichness))))
-}
-
-observed_tvd <- compute_observed_tvd(Elevation_Richness)
-  
-
-observed_tvd
-```
+```{r, total and unique bee species, proportions}
 
 
+# count total bee species per ecoregion
+total_bee_table <- OBA_reprojected_wBreaks_clean %>%
+  group_by(Ecoregion) %>%          # Group the data by the 'ecoregion' column
+  summarise(total_bee_species = n())  # Summing the species 
 
+# Count unique Species names per ecoregion
+species_count <- OBA_reprojected_wBreaks_clean %>%
+  group_by(Ecoregion) %>%                                  
+  summarise(unique_count = n_distinct(Species))       
 
-```{r, null hypothesis, not correct}
+unique(OBA_reprojected_wBreaks_clean$Species)
 
-# Elevation_Richness
-# 
-# calc_tvd <- function(observed, null) {
-#   observed_dist <- observed / sum(observed) 
-#   null_dist <- null / sum(null)             
-#   tvd <- 0.5 * sum(abs(observed_dist - null_dist))
-#   return(tvd)
-# }
-# 
-# calculate_tvd <- function(Elevation_Richness) {
-#   proportions <- Elevation_Richness %>%
-#     group_by(ElevationBin) %>%
-#     summarise(total_richness = sum(BeeSpeciesRichness)) %>%
-#     mutate(proportion = total_richness / sum(total_richness))
-# 
-# 
-#   # Calculate TVD (half the sum of absolute differences in proportions)
-#   tvd <- sum(abs(proportions$proportion - 1 / nrow(proportions))) / 2
-#   return(tvd)
-# }
-# 
-# shuffle_tvd <- function(Elevation_Richness) {
-#   shuffled_data <- Elevation_Richness %>%
-#     mutate(elevation_bin = sample(ElevationBin))  # Shuffle elevation bins
-#   
-#   calculate_tvd(shuffled_data)
-# }
-# 
-# # Number of permutations
-# n_permutations <- 1000
-# 
-# # Generate null distributions for each ecoregion
-# null_distributions <- Elevation_Richness %>%
-#   group_by(Ecoregion) %>%
-#   summarise(
-#     null_tvd = list(replicate(n_permutations, shuffle_tvd(cur_data())))
-#   )
-# 
-# results <- null_distributions %>%
-#   st_join(observed_tvd, by = "Ecoregion") %>%
-#   mutate(
-#     p_value = map2_dbl(observed_tvd, null_tvd, ~ mean(.x <= .y))  # Compute p-value
-#   )
-# 
-# 
-# # Unnest null distributions for plotting
-# null_data <- null_distributions %>%
-#   unnest(null_tvd)
-# 
-# ggplot(null_data, aes(x = null_tvd, fill = Ecoregion)) +
-#   geom_histogram(bins = 30, alpha = 0.6, position = "identity") +
-#   geom_vline(data = observed_tvd, aes(xintercept = observed_tvd, color = Ecoregion),
-#              linetype = "dashed", size = 1) +
-#   labs(title = "Null Distributions of TVD by Ecoregion",
-#        x = "Total Variation Distance", y = "Frequency") +
-#   theme_minimal()
+# View the result
+total_bee_table
+species_count
 
+total_unique_bee <- st_join(species_count, total_bee_table, by = "Ecoregion")
+total_unique_bee
 
-```
+beespecies_proportion <- total_unique_bee %>%
+  mutate(ProportionUnique = unique_count / total_bee_species)
+beespecies_proportion
 
-
-
-```{r, null hypothesis trying again}
-# Elevation_Richness
-# 
-# # finding the observed tvd of each ecoregion
-# compute_observed_tvd <- function(Elevation_Richness){
-#   Elevation_Richness %>%
-#     group_by(Ecoregion) %>%
-#     summarize(observed_tvd = calc_tvd(BeeSpeciesRichness, rep(1, length(BeeSpeciesRichness))))
-# }
-# 
-# observed_tvd <- compute_observed_tvd(Elevation_Richness)
-#   
-# 
-# observed_tvd
-# 
-# #shuffling data by observed tvd
-# shuffled_tvd <- sample(observed_tvd$observed_tvd, nrow(observed_tvd), replace = FALSE)
-# shuffled_tvd
-# 
-# observed_tvd$shuffled_tvd <- shuffled_tvd
-# observed_tvd
-# 
-# #comparing p-values
-# results <- observed_tvd %>%
-#   mutate(
-#     p_value = map2_dbl(observed_tvd, shuffled_tvd, ~ mean(.y >= .x))
-#   )
-# 
-# 
-# plot_data <- observed_tvd %>%
-#   unnest_longer(shuffled_tvd)
-# plot_data
-# 
-# # plotting null and observed data
-# ggplot(plot_data, aes(x = shuffled_tvd, fill = Ecoregion)) +
-#   geom_histogram(binwidth = 0.02, alpha = 0.6, position = "identity") +
-#   geom_vline(data = observed_tvd, aes(xintercept = observed_tvd, color = Ecoregion),
-#              linetype = "dashed", size = 1) +
-#   labs(title = "Null Distributions of TVD by Ecoregion",
-#        x = "Total Variation Distance", y = "Frequency") +
-#   theme_minimal()
-# 
-# 
-
-# #shuffling data by elevation bins
-# shuffled_elevation_bins <- sample(Elevation_Richness$ElevationBin, nrow(Elevation_Richness), replace = FALSE)
-# shuffled_elevation_bins
-# 
-# Elevation_Richness$shuffled_elevation_bins <- shuffled_elevation_bins
-# Elevation_Richness
-# observed_tvd
-# #calculate tvd for shuffled
-# shuffled_tvd <- observed_tvd %>%
-#   group_by(Ecoregion) %>%
-#   summarise(shuffled_tvd = calculate_tvd(cur_data(), "shuffled_elevation_bins"))
-```
-
-
-```{r, shuffling elevation and create null, potentailly correct}
-
-Elevation_Richness
-
-# Combine ElevationBin and BeeSpeciesRichness into a new column
-combined_data <- Elevation_Richness %>%
-  mutate(
-    combined = paste(ElevationBin, BeeSpeciesRichness, sep = "_")  
+total_bee_table <- OBA_reprojected_wBreaks_clean %>%
+  group_by(Ecoregion) %>%          # Group the data by the 'ecoregion' column
+  summarise(
+    total_bee_species = n(),          # Count of total observations
+    unique_species_count = n_distinct(Species) # Count of unique species
   )
 
-combined_data
-
-# Shuffle the combined column
-shuffled_data <- sample(combined_data$combined, nrow(combined_data), replace = FALSE)
-
-shuffled_data
-
-combined_data$combined <- shuffled_data
-#combined_data <- as_tibble(combined_data)
-combined_data
-
-# Convert columns to character if they are not
-combined_data$ElevationBin <- as.character(combined_data$ElevationBin)
-combined_data$BeeSpeciesRichness <- as.character(combined_data$BeeSpeciesRichness)
-
-
-
-# Split the shuffled combined column back into separate columns
-final_shuffled_data <- combined_data %>%
-  mutate(
-    shuffled_combined = sample(combined)  
-  ) %>%
-  separate(shuffled_combined, into = c("shuffled_elevation_bins", "shuffled_bee_species_richness"), sep = "_")
-
-Elevation_Richness
-final_shuffled_data
-
-#change to numeric
-final_shuffled_data$shuffled_bee_species_richness <- as.numeric(final_shuffled_data$shuffled_bee_species_richness)
-
-# finding the null tvd of each ecoregion
-compute_null_tvd <- function(final_shuffled_data){
-  final_shuffled_data %>%
-    group_by(Ecoregion) %>%
-    summarize(null_tvd = calc_tvd(shuffled_bee_species_richness, rep(1, length(shuffled_bee_species_richness))))
-}
-
-null_tvd <- compute_null_tvd(final_shuffled_data)
-
-observed_tvd
-null_tvd
-
-# plotting null and observed data
-ggplot(null_tvd, aes(x = null_tvd, fill = Ecoregion)) +
-  geom_histogram(binwidth = 0.02, alpha = 0.6, position = "identity") +
-  geom_vline(data = observed_tvd, aes(xintercept = observed_tvd, color = Ecoregion),
-             linetype = "dashed", size = 1) +
-  labs(title = "Null Distributions of TVD by Ecoregion",
-       x = "Total Variation Distance", y = "Frequency") +
-  theme_minimal()
+total_bee_table
 
 ```
-
-
-
-
-
-
-
-```{r, total bee observations in each ecoregion}
-
-Elevation_Richness %>%
-  group_by(Ecoregion) %>%          # Group the data by the 'ecoregion' column
-  summarise(total_bee_species = sum(BeeSpeciesRichness, na.rm = TRUE))  # Summing the bee species richness
-
-
-elevation_table <- Elevation_Richness %>%
-  select("Ecoregion", "BeeSpeciesRichness")
-
-
-
-```
-
-
-
-
-```{r TVD code continued}
-
-compute_null_tvd <- function(Elevation_Richness) {
-  Elevation_Richness %>%
-    group_by(Ecoregion) %>%
-    reframe(
-      null_tvd = calc_tvd(
-        sample(BeeSpeciesRichness),  # Shuffle richness values
-        rep(1, length(BeeSpeciesRichness))  # Uniform distribution
-      ))
-    
-}
-
-
-
-# Generating null distributions by shuffling elevation bins
-generate_null_distribution <- function(Elevation_Richness, num_permutations = 1000) {
-  null_tvd_list <- list()
-  
-  for (ecoregion in unique(Elevation_Richness$ecoregion)) {
-    sub_data <- Elevation_Richness %>% filter(ecoregion == ecoregion)
-    null_tvds <- numeric(num_permutations)
-    
-    for (i in 1:num_permutations) {
-      shuffled_bins <- sample(sub_data$elevation_bin)
-      shuffled_data <- sub_data %>%
-        mutate(ElevationBin = shuffled_bins) %>%
-        group_by(ElevationBin) %>%
-        summarise(total_richness = sum(richness), .groups = "drop")
-      
-      null_tvds[i] <- calc_tvd(
-        observed = shuffled_data$total_richness,
-        null = rep(1, nrow(shuffled_data))
-      )
-    }
-    
-    null_tvd_list[[ecoregion]] <- null_tvds
-  }
-  
-  return(null_tvd_list)
-}
-
-null_distributions <- generate_null_distribution(data)
-
-# Step 3: Compare observed TVD to null distributions
-compare_tvd <- function(observed_tvd, null_distributions) {
-  results <- data.frame(ecoregion = integer(), observed_tvd = numeric(), p_value = numeric())
-  
-  for (ecoregion in names(null_distributions)) {
-    null_tvds <- null_distributions[[ecoregion]]
-    observed <- observed_tvd %>% filter(ecoregion == as.numeric(ecoregion)) %>% pull(observed_tvd)
-    
-    # Calculate p-value
-    p_value <- mean(null_tvds >= observed)
-    
-    results <- rbind(results, data.frame(
-      ecoregion = as.numeric(ecoregion),
-      observed_tvd = observed,
-      p_value = p_value
-    ))
-  }
-  
-  return(results)
-}
-
-results <- compare_tvd(observed_tvd, null_distributions)
-
-# Step 4: Print results
-print(results)
-
-```
-
-
-
-
-```{r}
-
-# trying to figure out elevation binning issue
-
-coast_range_data <- OBA_reprojected_wBreaks %>%
-  filter(Ecoregion == "Coast Range")
-
-# View the filtered data
-print(coast_range_data)
-unique(OBA_reprojected_wBreaks$Ecoregion)
-sum(is.na(OBA_reprojected_wBreaks$Ecoregion))
- 
-as.data.frame(OBA_reprojected[is.na(OBA_reprojected$Ecoregion), ])
-
-print(unique(OBA_reprojected_wBreaks$ElevationBin[OBA_reprojected_wBreaks$Ecoregion == "Columbia Plateau"]))
-
-
-```
-
-
 
 
 
