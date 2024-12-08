@@ -1,5 +1,6 @@
 ---
-title: "Relationship Between Bee Richness and Elevation in Oregon"
+title: "Relationship Between Bee Richness and Elevation in Oregon
+by Kate Forsman and Jared Schnider"
 output: pdf_document
 date: "2024-12-8"
 ---
@@ -30,7 +31,8 @@ that the presence of bees is heavily impacted by factors such as rainfall,
 temperature, and wind, as these factors determine the availability of floral 
 resources, in turn affecting the foraging success of bees 
 (Tennakoon, et al., 2024).
-  Currently, many studies have examined the effects of elevation in relation 
+  
+Currently, many studies have examined the effects of elevation in relation 
 to bee species diversity. In the western US, researchers demonstrated that 
 higher elevations led to increased genetic differentiation among montane 
 bumblebee populations, driven by restricted gene flow in these environments 
@@ -48,13 +50,15 @@ peaking at middle elevations (Widhiono, et al., 2017). These contrasting
 results highlight the importance of not only elevation in regards to bee 
 species diversity, but also other climatic factors that are associated with 
 changes in elevation. 
-	The current body of literature encompasses a wide range of factors that 
+	
+The current body of literature encompasses a wide range of factors that 
 impact bee species diversity, as well as diverse locations from around 
 the world, showing that there are many intersecting components that impact 
 bee species diversity. Our goal is to focus on the spatial components that 
 impact bee species diversity, specifically elevation, within each ecoregion 
 in the state of Oregon. 
-  The purpose of our study is to determine how bee species diversity is related 
+  
+The purpose of our study is to determine how bee species diversity is related 
 to elevation within different ecoregions in Oregon. Our goal is to determine 
 which ecoregion in Oregon has the highest diversity of bee species and if bee 
 species richness follows an elevational gradient. We are interested in 
@@ -112,12 +116,13 @@ Elevational Gradient in an Agricultural Area in Central Java, Indonesia.
 Psyche: A Journal of Entomology, 2017, 1–5. 
 https://doi.org/10.1155/2017/2968414
 
-Northwest Pollinators and Climate Change | USDA Climate Hubs. (n.d.). https://www.climatehubs.usda.gov/hubs/northwest/topic/northwest-pollinators-
+Northwest Pollinators and Climate Change | USDA Climate Hubs. (n.d.). 
+https://www.climatehubs.usda.gov/hubs/northwest/topic/northwest-pollinators-
 and-climate-change
 
 Data 
 
-	In our project, we used the Oregon Bee Atlas, Oregon Ecoregion data set, 
+In our project, we used the Oregon Bee Atlas, Oregon Ecoregion data set, 
 and a Digital Elevation Model of Oregon (links to data sets below). 
 The Ecoregions data set was found on the Oregon Spatial Data Library website. 
 Every ecoregion, other than the Nearshore, are from the Oregon Biodiversity 
@@ -201,6 +206,9 @@ elevation_all_ecoregions_plot <- ggplot() +
 elevation_all_ecoregions_plot
 
 ```
+
+
+
 
 ```{r Reading in and cleaning OBA data, and plot of all 3 datasets}
 
@@ -468,7 +476,7 @@ p_values
 
 Hypothesis Test
 
-  From our results, we can conclude that there is a relationship between 
+From our results, we can conclude that there is a relationship between 
 elevation and bee species richness within each ecoregion. This is reflected 
 in the figure 2, as the histograms show our observed total variation distance 
 testing (TVD) value to be far outside of our generated null distributions. 
@@ -526,8 +534,6 @@ species_count <- OBA_binned %>%
   group_by(Ecoregion) %>%                                  
   summarise(unique_count = n_distinct(Species))       
 
-unique(OBA_binned$Species)
-
 total_unique_bee <- total_bee_table %>%
   left_join(species_count, by = "Ecoregion")
 
@@ -542,7 +548,7 @@ total_unique_bee
 
 Conclusion
 
-  The ecoregion with the most species diversity is the Columbia Plateau. 
+The ecoregion with the most species diversity is the Columbia Plateau. 
 (Figure 1, Table 1). The ecoregion consists entirely of lowlands, is 
 dominated by shrubs and grasses, and has an arid climate with hot summers 
 and cold winters. These conditions are ideal for various bee species due to 
@@ -561,7 +567,3 @@ require specific elevations and ecoregions to thrive. However, elevation and
 ecoregion preferences may shift due to changing climate from natural disasters, 
 such as forest fires, and human activities, such as increased urbanization, 
 which could alter their habitats.
-title: "Untitled"
-output: html_document
-date: "2024-11-13"
----
