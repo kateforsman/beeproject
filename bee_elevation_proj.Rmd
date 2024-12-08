@@ -15,13 +15,11 @@ library(tmap)
 library(RColorBrewer)
 library(raster)
 ```
-
-
+  
 
 
 ```{r - Code for reading in and reducing resolution of DEM data}
 
-getwd()
 describe("dem_rast_r.tif")
 dem_rast <- rast("dem_rast_r.tif")
 dem_rast
@@ -34,7 +32,6 @@ head(dem_rast_dsamp_df)
 summary(values(dem_rast_downsampled))
 
 ```
-
 
 
 
@@ -102,25 +99,13 @@ OBA_reprojected <- st_transform(OBA_sf, crs(dem_rast))
 # displaying reprojected OBA data
 head(OBA_reprojected)
 
-```
 
-
-
-```{r Plotting all data sets together}
 
 # plot of all 3 data sets together
-final_map <- ggplot() +
-  geom_raster(data = dem_rast_dsamp_df, aes(x = x, y = y, 
-                                            fill = OR_DEM_10M_files)) +
-  labs(fill = "Elevation in feet", x = "Longitude", y = "Latitude") +
-  scale_fill_gradientn(colours = terrain.colors(7)) +
-  geom_sf(data = ecoregions, color = "black", fill = NA) +
-  geom_sf(data = OBA_sf, size = 0.3, color = "black", alpha = 0.2) +
-  labs(caption = "Figure 1. Black points represent bee observations", 
-       title = "Bee Observations across Elevations and Oregon Ecoregions") +
-  theme(plot.caption = element_text(hjust = 0.5))
-
-final_map
+bee_points <- ggplot() +
+  geom_sf(data = OBA_sf, size = 0.7, color = "black") 
+  
+bee_points
 
 ```
 
@@ -153,6 +138,7 @@ OBA_reprojected_df <- as.data.frame(OBA_reprojected, xy=TRUE)
 head(OBA_reprojected_df)
 
 ```
+
 
 
 
@@ -234,6 +220,27 @@ calculate_tvd_all_ecoregions <- function(species_occurence, observed=FALSE) {
 
 ```
 
+
+```{r Plotting all data sets together}
+
+# plot of all 3 data sets together
+final_map <- ggplot() +
+  geom_raster(data = dem_rast_dsamp_df, aes(x = x, y = y, 
+                                            fill = OR_DEM_10M_files)) +
+  labs(fill = "Elevation in feet", x = "Longitude", y = "Latitude") +
+  scale_fill_gradientn(colours = terrain.colors(7)) +
+  geom_sf(data = ecoregions, color = "navy", fill = NA ,linewidth = 0.6) +
+  geom_sf(data = OBA_sf, size = 0.5, color = "black", alpha = 0.4) +
+  labs(caption = "Black points represent bee observations", 
+       title = "Figure 1: Bee Observations across Elevations and Oregon Ecoregions") +
+  theme(plot.caption = element_text(hjust = 0.5))
+
+final_map
+
+```
+
+
+
 ```{r Null distribution generation}
 
 # Initialize list to store null distributions for each ecoregion
@@ -272,7 +279,7 @@ row.names(observed_tvd_df) <- NULL
 # displaying observed values
 observed_tvd_df
 
-# displaying some null distribution values for the ecoregions
+# displaying some generated TVD values for the ecoregions (for null dist.)
 head(null_distributions)
 
 
@@ -285,7 +292,7 @@ ecoregions <- intersect(unique(long_null$Ecoregion), unique(observed_tvd_df$Ecor
              linewidth = 1, color = "black") +
   facet_wrap(~ Ecoregion, scales = "free") +
   labs(
-    title = "Null Distributions of TVD with Observed TVD Lines by Ecoregion",
+    title = "Figure 2: Null Distributions of TVD with Observed TVD Lines by Ecoregion",
     x = "TVD",
     y = "Frequency"
   ) +
@@ -295,6 +302,7 @@ ecoregions <- intersect(unique(long_null$Ecoregion), unique(observed_tvd_df$Ecor
 histogram_plot
 
 ```
+
 
 
 ```{r function for p values}
@@ -314,8 +322,8 @@ p_values
 ```
 
 
-```{r bar plot of observed}
 
+```{r bar plot of observed}
 
 # Getting unique ecoregions
 ecoregions_for_plot <- unique(observed_richness$Ecoregion)
@@ -330,7 +338,7 @@ for (eco in ecoregions_for_plot) {
                                    fill = ElevationBin)) +
     geom_bar(stat = "identity", show.legend = FALSE, width = 0.5) +
     labs(
-      title = paste("Species Richness Across Elevation Bins for", eco),
+      title = paste(" Figure 3: Species Richness Across Elevation Bins for", eco),
       x = "Elevation Bin (ft)",
       y = "Species Richness"
     ) +
@@ -346,5 +354,33 @@ for (eco in ecoregions_for_plot) {
     )
   print(eco_plot)
 }   
+
+```
+
+
+
+```{r Table showing data for total observations, richness and diversity}
+
+# count total bee species per ecoregion
+total_bee_table <- OBA_binned %>%
+  group_by(Ecoregion) %>%          
+  summarise(total_bee_species = n())  
+
+# Count unique Species names per ecoregion
+species_count <- OBA_binned %>%
+  group_by(Ecoregion) %>%                                  
+  summarise(unique_count = n_distinct(Species))       
+
+unique(OBA_binned$Species)
+
+total_unique_bee <- total_bee_table %>%
+  left_join(species_count, by = "Ecoregion")
+
+
+total_unique_bee <- total_unique_bee %>%
+  mutate(ProportionUnique = (unique_count / total_bee_species)*100)
+
+
+total_unique_bee
 
 ```
