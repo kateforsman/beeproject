@@ -1,8 +1,147 @@
 ---
-title: "Untitled"
-output: html_document
-date: "2024-11-13"
+title: "Relationship Between Bee Richness and Elevation in Oregon"
+output: pdf_document
+date: "2024-12-8"
 ---
+
+Introduction
+
+  The Pacific Northwest is an area with a diverse range of ecosystems. 
+The ecosystems in this region are likely to experience dramatic changes due 
+to the effects of climate change, given that a large portion of Oregon is 
+highly susceptible to forest fires (Halofsky, et al., 2020).  Changing climate 
+and extreme weather events are likely to change elevation preference in 
+pollinators as well as impact bloom time in plants that they visit (USDA). 
+Since pollinators are responsible for the majority of fruit and seed production,
+it is vital that bee species diversity is maintained (Kearns & Oliveras, 2009). 
+Oregon is home to approximately 500 different species of bee, as well as other 
+types of pollinators such as ants and flies (USDA). Within the state, there are 
+nine ecoregions that span a wide range of ecosystems, each hosting a diverse 
+array of bees. Current research has examined the effects of factors such as 
+climate, geography, and ecology on species diversity in bee populations. 
+Research by Orr, et al. has found that the most prevalent drivers of diversity 
+in bees were climate and non-forest plant productivity, with areas of a 
+temperate climate and high plant species richness promoting higher diversity of 
+bees (Orr, et al., 2021). Pollinator diversity plays an important role in 
+maintaining natural plant communities, as pollinators provide a unique and 
+essential ecosystem service that can not be effectively replicated through 
+just increasing pollinator abundance (Katumo, et al., 2022). It is known 
+that the presence of bees is heavily impacted by factors such as rainfall, 
+temperature, and wind, as these factors determine the availability of floral 
+resources, in turn affecting the foraging success of bees 
+(Tennakoon, et al., 2024).
+  Currently, many studies have examined the effects of elevation in relation 
+to bee species diversity. In the western US, researchers demonstrated that 
+higher elevations led to increased genetic differentiation among montane 
+bumblebee populations, driven by restricted gene flow in these environments 
+Jackson et al., 2018). The study suggested that species with narrow elevational 
+ranges are more vulnerable to habitat fragmentation and climate change, 
+emphasizing the role of elevation in relation to genetic divergence. In the 
+Eastern Afromontane Biodiversity Hotspot in Kenya, a decrease was observed in 
+both species richness and abundance across communities with increasing 
+elevation, linked to seasonal climate variations and shifts in floral 
+resource availability that is predicted to become more extreme due to 
+climate change (Dzekashu, et al., 2022). In contrast, a study performed in 
+Central Java, Indonesia, found there to be a linear increase in bee species 
+richness and abundance with increasing elevation, with species diversity 
+peaking at middle elevations (Widhiono, et al., 2017). These contrasting 
+results highlight the importance of not only elevation in regards to bee 
+species diversity, but also other climatic factors that are associated with 
+changes in elevation. 
+	The current body of literature encompasses a wide range of factors that 
+impact bee species diversity, as well as diverse locations from around 
+the world, showing that there are many intersecting components that impact 
+bee species diversity. Our goal is to focus on the spatial components that 
+impact bee species diversity, specifically elevation, within each ecoregion 
+in the state of Oregon. 
+  The purpose of our study is to determine how bee species diversity is related 
+to elevation within different ecoregions in Oregon. Our goal is to determine 
+which ecoregion in Oregon has the highest diversity of bee species and if bee 
+species richness follows an elevational gradient. We are interested in 
+elucidating which of the nine ecoregions have the highest diversity of bees, 
+and if species diversity in bees follows an elevational gradient within each 
+ecoregion. We predict that Southeast Oregon, the Northern Basin and Range 
+ecoregion, will have the highest diversity of bees due to the dry climate and 
+varying elevation levels which can accommodate different species. Additionally, 
+we predict that bees in Oregon will follow an elevational gradient, with lower 
+elevation regions within ecoregion hosting a higher diversity of bee species.
+
+References
+
+Dzekashu, F. F., Yusuf, A. A., Pirk, C. W. W., Steffan‐Dewenter, I., Lattorff,
+H. M. G., & Peters, M. K. (2022). 
+Floral turnover and climate drive seasonal bee diversity along a tropical 
+elevation gradient. Ecosphere, 13(3), e3964. 
+https://doi.org/10.1002/ecs2.3964
+
+Halofsky, J. E., Peterson, D. L., & Harvey, B. J. (2020). 
+Changing wildfire, changing forests: The effects of climate change on fire 
+regimes and vegetation in the Pacific Northwest, USA. Fire Ecology, 16(1), 4. 
+https://doi.org/10.1186/s42408-019-0062-8
+
+Jackson, J. M., Pimsler, M. L., Oyen, K. J., Koch‐Uhuad, J. B., Herndon, J. D.,
+Strange, J. P., Dillon, M. E., & Lozier, J. D. (2018). 
+Distance, elevation and environment as drivers of diversity and divergence in 
+bumble bees across latitude and altitude. Molecular Ecology, 27(14), 2926–2942. 
+https://doi.org/10.1111/mec.14735
+
+Katumo, D. M., Liang, H., Ochola, A. C., Lv, M., Wang, Q.-F., & 
+Yang, C.-F. (2022). 
+Pollinator diversity benefits natural and agricultural ecosystems, 
+environmental health, and human welfare. Plant Diversity, 44(5), 429–435. 
+https://doi.org/10.1016/j.pld.2022.01.005
+
+Kearns, C. A., & Oliveras, D. M. (2009). Environmental factors affecting 
+bee diversity in urban and remote grassland plots in Boulder, Colorado. 
+Journal of Insect Conservation, 13(6), 655–665. 
+https://doi.org/10.1007/s10841-009-9215-4
+
+Orr, M. C., Hughes, A. C., Chesters, D., Pickering, J., Zhu, 
+C.-D., & Ascher, J. S. (2021). Global Patterns and Drivers of Bee Distribution. 
+Current Biology, 31(3), 451-458.e4. 
+https://doi.org/10.1016/j.cub.2020.10.053
+
+Tennakoon, S., Apan, A., & Maraseni, T. (2024). Unravelling the impact of 
+climate change on honey bees: An ensemble modelling approach to predict 
+shifts in habitat suitability in Queensland, Australia. 
+Ecology and Evolution, 14(4). 
+https://doi.org/10.1002/ece3.1130
+
+Widhiono, I., Sudiana, E., & Darsono, D. (2017). Diversity of Wild Bees along 
+Elevational Gradient in an Agricultural Area in Central Java, Indonesia. 
+Psyche: A Journal of Entomology, 2017, 1–5. 
+https://doi.org/10.1155/2017/2968414
+
+Northwest Pollinators and Climate Change | USDA Climate Hubs. (n.d.). https://www.climatehubs.usda.gov/hubs/northwest/topic/northwest-pollinators-
+and-climate-change
+
+Data 
+
+	In our project, we used the Oregon Bee Atlas, Oregon Ecoregion data set, 
+and a Digital Elevation Model of Oregon (links to data sets below). 
+The Ecoregions data set was found on the Oregon Spatial Data Library website. 
+Every ecoregion, other than the Nearshore, are from the Oregon Biodiversity 
+Information Center (ORBIC) March, 2010 ecoregion dataset. The Nearshore 
+ecoregion was from the Oregon State Boundary dataset, provided via the Oregon 
+GEOSpatial Data Library. To create the nine ecoregions, jurisdictional 
+boundaries were used to ensure every region was divided properly. There are 
+seven columns in the dataset, with the first four identifying the ecoregion by 
+Object ID, name, abbreviation, and code. The next two columns are both forms of 
+GIS data that represent the area and perimeter of each ecoregion. The final 
+column states the geometry of each region as polygons and also includes 
+coordinates. As for the Digital Elevation Model of Oregon (DEM) the raster 
+data was found on GEOHub and was created by the Oregon Department of 
+Forestry. The original resolution of the DEM is 10x10 meters, with the 
+elevation recorded in feet. The DEM was created as a floating point raster, 
+rather than an integer. Both data sets were too large to upload to github, 
+so they will need to be downloaded from the links below for use.
+
+DEM: https://www.arcgis.com/home/item.html?id=b2a1742f015744d2bc619e5e59c00330
+
+Ecoregions data: 
+https://spatialdata.oregonexplorer.info/geoportal/
+details;id=3c7862c4ae664993ad1531907b1e413e
+
 
 ```{r setup, include=FALSE}
 # packages that will be used
@@ -16,6 +155,13 @@ library(RColorBrewer)
 library(raster)
 ```
   
+Data Wrangling & Summarizing
+
+The following code will read in and filter our data. There are descriptions
+for what each section is accomplishing, with added notations for chunks of 
+code. Some initial tables, graphs, and dataset summaries are used to
+get a better understanding of our data set. Final visualizations can be found
+in figures 1, 2, and table 1 (total_unique_bee) at the end of our code.
 
 
 ```{r - Code for reading in and reducing resolution of DEM data}
@@ -240,7 +386,6 @@ final_map
 ```
 
 
-
 ```{r Null distribution generation}
 
 # Initialize list to store null distributions for each ecoregion
@@ -321,6 +466,16 @@ p_values
 
 ```
 
+Hypothesis Test
+
+  From our results, we can conclude that there is a relationship between 
+elevation and bee species richness within each ecoregion. This is reflected 
+in the figure 2, as the histograms show our observed total variation distance 
+testing (TVD) value to be far outside of our generated null distributions. 
+Our p values also indicate significance as there were no null distributions 
+generated that the observed value fell within (p=0). We can also conclude that 
+Columbia Plateau ecoregion has the highest diversity 
+(measured as relative species richness) at 8.3%.
 
 
 ```{r bar plot of observed}
@@ -384,3 +539,26 @@ total_unique_bee <- total_unique_bee %>%
 total_unique_bee
 
 ```
+
+Conclusion
+
+  The ecoregion with the most species diversity is the Columbia Plateau. 
+(Figure 1, Table 1). The ecoregion consists entirely of lowlands, is 
+dominated by shrubs and grasses, and has an arid climate with hot summers 
+and cold winters. These conditions are ideal for various bee species due to 
+the warm, dry weather and large amount of flowering plants which can be 
+used for foraging. The Willamette Valley ecoregion has the highest total bee 
+observation count (18,600) but lowest relative species richness at 1.0%. This 
+can be attributed to the heavily urbanized areas and agricultural land that 
+make up this ecoregion, causing habitat loss and fragmentation. Based on the 
+results of the TVD test, the null hypothesis, that each elevation bin has the 
+same number of unique species, can be rejected since the observed TVD is far 
+outside the null TVD distribution and the p-value for each ecoregion was found 
+to be zero (Figure 2). Additionally, the observed species richness for each 
+elevation bin shows different elevational preferences for unique bee species 
+(Figure 3). Overall, our testing showed that different bee species in Oregon 
+require specific elevations and ecoregions to thrive. However, elevation and 
+ecoregion preferences may shift due to changing climate from natural disasters, 
+such as forest fires, and human activities, such as increased urbanization, 
+which could alter their habitats.
+
